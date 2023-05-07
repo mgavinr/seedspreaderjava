@@ -13,7 +13,7 @@
         android:id="@+id/textViewMotd"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Hello World!"
+        android:text="@string/motd"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
@@ -23,13 +23,15 @@
         android:id="@+id/buttonSettings"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Button" />
+        android:onClick="clickSettings"
+        android:text="@string/button_settings" />
 
     <Button
         android:id="@+id/buttonAddtray"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Button" />
+        android:onClick="clickNewtray"
+        android:text="@string/button_add_tray" />
 
     <ScrollView
         android:layout_width="match_parent"
