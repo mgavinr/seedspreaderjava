@@ -14,6 +14,7 @@ public class SeedTray {
     String name;
     int width;
     int height;
-    ArrayList<Seed> seedList;
     int year;
+    ArrayList<Seed> seedList;
+
 }
