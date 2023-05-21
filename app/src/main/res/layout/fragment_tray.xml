@@ -9,14 +9,15 @@
     <!-- TODO: Update blank fragment layout -->
 
     <ImageView
-        android:id="@+id/imageView2"
-        android:layout_width="wrap_content"
+        android:id="@+id/id_frag_tray_image"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:adjustViewBounds="true"
         android:scaleType="centerCrop"
-        tools:src="@tools:sample/backgrounds/scenic" />
+        tools:src="@drawable/tray1" />
 
     <EditText
-        android:id="@+id/editTextTextTrayName"
+        android:id="@+id/id_frag_tray_name"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_gravity="center"

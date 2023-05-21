@@ -1,12 +1,19 @@
 package com.grogers.seedspreaderjava;
 
+import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 
+import android.provider.ContactsContract;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.EditText;
+import android.widget.ImageView;
 
 /**
  * A simple {@link Fragment} subclass.
@@ -17,12 +24,12 @@ public class TrayFragment extends Fragment {
 
     // TODO: Rename parameter arguments, choose names that match
     // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
-    private static final String ARG_PARAM1 = "param1";
-    private static final String ARG_PARAM2 = "param2";
+    private static final String ARG_NAME = "name";
+    private static final String ARG_PICTURE = "picture";
 
     // TODO: Rename and change types of parameters
-    private String mParam1;
-    private String mParam2;
+    private String name;
+    private String picture;
 
     public TrayFragment() {
         // Required empty public constructor
@@ -32,16 +39,16 @@ public class TrayFragment extends Fragment {
      * Use this factory method to create a new instance of
      * this fragment using the provided parameters.
      *
-     * @param param1 Parameter 1.
-     * @param param2 Parameter 2.
+     * @param name  - the name of the tray
+     * @param picture - the picture name of the tray
      * @return A new instance of fragment TrayFragment.
      */
     // TODO: Rename and change types and number of parameters
-    public static TrayFragment newInstance(String param1, String param2) {
+    public static TrayFragment newInstance(String name, String picture) {
         TrayFragment fragment = new TrayFragment();
         Bundle args = new Bundle();
-        args.putString(ARG_PARAM1, param1);
-        args.putString(ARG_PARAM2, param2);
+        args.putString(ARG_NAME, name);
+        args.putString(ARG_PICTURE, picture);
         fragment.setArguments(args);
         return fragment;
     }
@@ -50,8 +57,8 @@ public class TrayFragment extends Fragment {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         if (getArguments() != null) {
-            mParam1 = getArguments().getString(ARG_PARAM1);
-            mParam2 = getArguments().getString(ARG_PARAM2);
+            name = getArguments().getString(ARG_NAME);
+            picture = getArguments().getString(ARG_PICTURE);
         }
     }
 
@@ -60,5 +67,17 @@ public class TrayFragment extends Fragment {
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
         return inflater.inflate(R.layout.fragment_tray, container, false);
+    }
+
+    @Override
+    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
+        EditText name = (EditText) view.findViewById(R.id.id_frag_tray_name);
+        name.setText(this.name);
+        int resourceId = getContext().getResources().getIdentifier(picture, "drawable", SeedApplication.getContext().getPackageName());
+        ImageView image = (ImageView) view.findViewById(R.id.id_frag_tray_image);
+        image.setImageResource(R.drawable.tray1);
+        Log.d(this.getClass().getSimpleName(), "*&* The id for drawing " + name + " is " + resourceId);
+        image.setImageResource(resourceId);
     }
 }

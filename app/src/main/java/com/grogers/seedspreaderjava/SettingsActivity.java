@@ -12,7 +12,7 @@ public class SettingsActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_settings);
-        Log.d("ssset", "This is a settings log file");
+        Log.d(this.getClass().getSimpleName(), "*&* This is a settings activity and log for it");
     }
 
 }

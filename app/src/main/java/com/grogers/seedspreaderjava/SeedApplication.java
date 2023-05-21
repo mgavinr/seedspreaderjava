@@ -5,6 +5,8 @@ package com.grogers.seedspreaderjava;
 // Your singleton then has a getInstance() method, but whatever you like go for
 // This author added that last bit, of course.
 
+import android.content.Context;
+
 /* SeedApplication Comment based Markdown notes
 
 JDK is 11 gradle settings
@@ -33,4 +35,11 @@ at work, at least.  It's just a wasting monthly expenditure.  Again, I am often 
 
  */
 public class SeedApplication extends android.app.Application {
+    private static SeedApplication instance;
+    public SeedApplication() {
+        instance = this;
+    }
+    public static Context getContext() {
+        return instance.getApplicationContext();
+    }
 }
