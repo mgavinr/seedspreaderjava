@@ -52,7 +52,8 @@ public class MainActivity extends AppCompatActivity {
         Log.d(this.getClass().getSimpleName(), "*&* clickSettings()");
         this.startActivity(new Intent(this, SettingsActivity.class));
     }
-    public void clickNewtray(View view) {
-        Log.d(this.getClass().getSimpleName(), "*&* clickNewtray()");
+    public void clickNewTray(View view) {
+        Log.d(this.getClass().getSimpleName(), "*&* clickNewTray()");
+        this.startActivity(new Intent(this, EditTrayActivity.class));
     }
 }

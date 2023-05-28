@@ -30,7 +30,7 @@
         android:id="@+id/buttonAddtray"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:onClick="clickNewtray"
+        android:onClick="clickNewTray"
         android:text="@string/button_add_tray" />
 
     <ScrollView

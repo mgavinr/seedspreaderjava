@@ -9,21 +9,17 @@
     <!-- TODO: Update blank fragment layout -->
 
     <ImageView
-        android:id="@+id/id_frag_tray_image"
+        android:id="@+id/ftPicture"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:adjustViewBounds="true"
         android:scaleType="centerCrop"
         tools:src="@drawable/tray1" />
 
-    <EditText
-        android:id="@+id/id_frag_tray_name"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_gravity="center"
-        android:background="@drawable/ic_launcher_background"
-        android:ems="10"
-        android:inputType="textPersonName"
-        android:text="The Name of Seed Tray" />
+    <Button
+        android:id="@+id/ftTrayNameButton"
+        android:layout_width="139dp"
+        android:layout_height="84dp"
+        android:text="Button" />
 
 </FrameLayout>

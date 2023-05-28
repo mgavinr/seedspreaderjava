@@ -7,4 +7,6 @@
     <string name="settings_date">Pick a year to view</string>
     <!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="aet_cols">Number of Columns</string>
+    <string name="aet_rows">Number of Rows</string>
 </resources>
