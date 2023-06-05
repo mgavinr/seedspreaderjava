@@ -3,7 +3,7 @@
     xmlns:tools="http://schemas.android.com/tools">
 
     <application
-        android:name=".SeedApplication"
+        android:name=".frontend.SeedApplication"
         android:allowBackup="true"
         android:dataExtractionRules="@xml/data_extraction_rules"
         android:fullBackupContent="@xml/backup_rules"
@@ -13,7 +13,7 @@
         android:theme="@style/Theme.Seedspreaderjava"
         tools:targetApi="31">
         <activity
-            android:name=".MainActivity"
+            android:name=".frontend.MainActivity"
             android:exported="true"
             android:label="Seed Spreader 0.1">
             <intent-filter>
@@ -23,11 +23,11 @@
             </intent-filter>
         </activity>
         <activity
-            android:name=".SettingsActivity"
+            android:name=".frontend.SettingsActivity"
             android:exported="true"
             android:label="Settings" />
         <activity
-            android:name=".EditTrayActivity"
+            android:name=".frontend.EditTrayActivity"
             android:exported="false" />
     </application>
 

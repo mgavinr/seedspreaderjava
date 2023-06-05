@@ -1,4 +1,4 @@
-package com.grogers.seedspreaderjava;
+package com.grogers.seedspreaderjava.backend;
 
 import java.util.Hashtable;
 

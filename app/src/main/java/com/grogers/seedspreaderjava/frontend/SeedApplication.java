@@ -1,4 +1,4 @@
-package com.grogers.seedspreaderjava;
+package com.grogers.seedspreaderjava.frontend;
 
 // created before any other class, there is normally no need to subclass.  In most
 // cases static singletons can provide the same functionality in a more modular way.

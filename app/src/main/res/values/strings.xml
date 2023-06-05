@@ -9,4 +9,8 @@
     <string name="hello_blank_fragment">Hello blank fragment</string>
     <string name="aet_cols">Number of Columns</string>
     <string name="aet_rows">Number of Rows</string>
+    <string name="aet_add_seeds">Add seeds</string>
+    <string name="aet_add_register">Register Event (Seedlings, Death, Transplant..)</string>
+    <string name="aet_register_dialog">Register Event</string>
+    <string name="aet_summary">Summary</string>
 </resources>
