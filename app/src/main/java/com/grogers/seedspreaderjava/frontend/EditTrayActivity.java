@@ -1,29 +1,69 @@
 package com.grogers.seedspreaderjava.frontend;
 
+import androidx.activity.result.ActivityResult;
+import androidx.activity.result.ActivityResultCallback;
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 
+import android.app.Activity;
+import android.content.ActivityNotFoundException;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.graphics.Bitmap;
 import android.os.Bundle;
+import android.provider.MediaStore;
 import android.util.Log;
 import android.util.SparseBooleanArray;
 import android.view.View;
 import android.widget.Adapter;
 import android.widget.ArrayAdapter;
 import android.widget.EditText;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.TextView;
 
 import com.grogers.seedspreaderjava.R;
 
-public class EditTrayActivity extends AppCompatActivity {
+public class EditTrayActivity extends AppCompatActivity
+        implements View.OnLongClickListener, ActivityResultCallback<ActivityResult>
+{
+
+    private static final int REQUEST_IMAGE_CAPTURE = 1;
+    private ActivityResultLauncher<Intent> launcher;
+    private ImageView tray;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_edit_tray);
+        launcher = registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), this);
+
+        tray = findViewById(R.id.aetTrayImage);
+        tray.setOnLongClickListener(this);
+    }
+
+    @Override
+    public boolean onLongClick(View v) {
+        Log.d(this.getClass().getSimpleName(), "*&* Yay! on long click");
+        Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+        launcher.launch(intent);
+        return true;
+    }
+
+    @Override
+    public void onActivityResult(ActivityResult result) {
+        Log.d(this.getClass().getSimpleName(), "*&* Yay! on long click result");
+        if (result.getResultCode() == Activity.RESULT_OK) {
+            // The image capture was successful. You can access the captured image here.
+            Intent data = result.getData();
+            Bundle extras = data.getExtras();
+            Bitmap imageBitmap = (Bitmap) extras.get("data");
+            // Do something with the imageBitmap, such as displaying it in an ImageView
+            tray.setImageBitmap(imageBitmap);
+        }
     }
 
     public void aetAddSeedsEvent(View view) {
