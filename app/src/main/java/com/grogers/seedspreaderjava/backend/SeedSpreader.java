@@ -29,9 +29,9 @@ class ifAndroid {
 
     /* Files */
     ///* /data/user/0/com.grogers.seedspreaderjava/seed.yaml */
-    public File filesPrivate = context.getDataDir();
+    public File filesPrivateParent = context.getDataDir();
     ///* /data/user/0/com.grogers.seedspreaderjava/files/seed.yaml */
-    public File filesPrivateParent = context.getFilesDir();
+    public File filesPrivate = context.getFilesDir();
     // public
     ///*  /storage/emulated/0/Android/data/com.grogers.seedspreaderjava/files/Documents/seed.yaml */
     public File filesPublic = context.getExternalFilesDir(Environment.DIRECTORY_DOCUMENTS);
