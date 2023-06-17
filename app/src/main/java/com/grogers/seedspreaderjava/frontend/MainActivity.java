@@ -12,13 +12,14 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import com.grogers.seedspreaderjava.R;
+import com.grogers.seedspreaderjava.backend.SeedSpreader;
 
 /*
 ** TODO list
 *   we need to come up with a naming style that makes sense
  */
 public class MainActivity extends AppCompatActivity {
-
+    SeedSpreader seedSpreader = null;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -28,6 +29,7 @@ public class MainActivity extends AppCompatActivity {
         vv.setText("This is message of the day");
         Log.d(this.getClass().getSimpleName(), "*&* ///////////////////////////////////////");
         Log.d(this.getClass().getSimpleName(), "*&* This is a log file");
+        seedSpreader = SeedSpreader.getInstance();
         LinearLayout mainll = (LinearLayout) findViewById(R.id.linearLayoutMain);
 
         // Create a tray

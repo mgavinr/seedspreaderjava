@@ -34,6 +34,12 @@ cancel the contract with Board Gais, as it hasn't been cold or needed at all in 
 at work, at least.  It's just a wasting monthly expenditure.  Again, I am often thanked ..
 
  */
+
+/* Hello loser can you please let us know what the API is that you are using and remove this
+garbage so we can see it too
+Also while you are at it the api ref java api and java api ref thank you
+as variables too not comments.
+ */
 public class SeedApplication extends android.app.Application {
     private static SeedApplication instance;
     public SeedApplication() {
