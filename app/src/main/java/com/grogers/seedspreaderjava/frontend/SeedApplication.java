@@ -40,6 +40,10 @@ garbage so we can see it too
 Also while you are at it the api ref java api and java api ref thank you
 as variables too not comments.
  */
+
+/**
+ * Docu
+ */
 public class SeedApplication extends android.app.Application {
     private static SeedApplication instance;
     public SeedApplication() {
@@ -48,4 +52,6 @@ public class SeedApplication extends android.app.Application {
     public static Context getContext() {
         return instance.getApplicationContext();
     }
+
+
 }
