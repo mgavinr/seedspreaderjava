@@ -15,17 +15,36 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Hashtable;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
 class YamlReader {
-    public Map<String, Object> readYamlFile(String filePath) throws FileNotFoundException {
+    boolean multiple = true;
+    interface Callback {
+        void onCallback(Map<String, Object> yamlData);
+    }
+    void readYamlFile(String filePath, Callback cb) throws FileNotFoundException {
         Yaml yaml = new Yaml();
-
         FileInputStream fileInputStream = new FileInputStream(filePath);
-        Map<String, Object> yamlData = yaml.load(fileInputStream);
-
-        return yamlData;
+        if (multiple) {
+            Log.d(this.getClass().getSimpleName(), "*&*&* Reading multiple yaml documents");
+            Iterable<Object> documents = yaml.loadAll(fileInputStream);
+            Iterator<Object> iterator = documents.iterator();
+            while(iterator.hasNext()) {
+                Object document = iterator.next();
+                if (document instanceof Map) {
+                    Map<String, Object> yamlData = (Map<String, Object>) document;
+                    cb.onCallback(yamlData);
+                }
+            }
+        } else {
+            Log.d(this.getClass().getSimpleName(), "*&*&* Reading single yaml documents");
+            Map<String, Object> yamlData = yaml.load(fileInputStream);
+            Log.d(this.getClass().getSimpleName(), "*&*&* YAML file read successfully.");
+            Log.d(this.getClass().getSimpleName(), "*&*&*" + yaml.dump(yamlData));
+            cb.onCallback(yamlData);
+        }
     }
 
 }
@@ -35,14 +54,15 @@ class YamlWriter {
     public void writeYamlFile(String filePath, Map<String, Object> data) {
         DumperOptions options = new DumperOptions();
         options.setDefaultFlowStyle(DumperOptions.FlowStyle.BLOCK); // Optional: Set the desired flow style
+        options.setExplicitStart(true);
 
         // Create a YAML instance
         Yaml yaml = new Yaml(options);
 
         // Write the YAML content to a file
         try (FileWriter writer = new FileWriter(filePath, append)) {
-            yaml.dump(data, writer);
             Log.d(this.getClass().getSimpleName(), "*&*&* YAML file written successfully.");
+            Log.d(this.getClass().getSimpleName(), "*&*&*" + yaml.dump(data));
         } catch (IOException e) {
             Log.e(this.getClass().getSimpleName(), "*&*&* Error writing YAML file: " + e.getMessage());
         }
@@ -73,12 +93,12 @@ class SampleData {
         createSeeds();
     }
     void createSeeds() {
-        Map<String, Object> data = new HashMap<>();
-        data.put("name", "Sweet Pepper");
-        data.put("description", "A sweet pepper plant");
-        data.put("image", "sweetpepper.jpg");
-        data.put("year", List.of(2023));
-        SeedSpreader.getInstance().seeds.put(data.get("name").toString(), data);
+        Map<String, Object> yamlData = new HashMap<>();
+        yamlData.put("name", "Sweet Pepper");
+        yamlData.put("description", "A sweet pepper plant");
+        yamlData.put("image", "sweetpepper.jpg");
+        yamlData.put("year", List.of(2023));
+        SeedSpreader.getInstance().seeds.put(yamlData.get("name").toString(), yamlData);
     }
 }
 public class SeedSpreader {
@@ -116,21 +136,30 @@ public class SeedSpreader {
     void readDataForSeeds() {
         YamlReader reader = new YamlReader();
         String filePath = ifand.filesPublic + "/" + "seeds.yaml";
+        Log.d(this.getClass().getSimpleName(), "*&*&* readDataForSeeds(" + filePath + ")");
         try {
             // this is internal String filePath = ifand.context.getFilesDir() + "seeds.yaml";
-            Map<String, Object> yamlData = reader.readYamlFile(filePath);
-            Log.d(this.getClass().getSimpleName(), "*&*&* readDataForSeeds(" + yamlData.get("name") + ")");
+            reader.readYamlFile(filePath, new YamlReader.Callback() {
+                @Override
+                public void onCallback(Map<String, Object> yamlData) {
+                    seeds.put(yamlData.get("name").toString(), yamlData);
+                }
+            });
+            Log.d(this.getClass().getSimpleName(), "*&*&* readDataForSeeds done, read " + seeds.size() + " seeds");
         } catch (FileNotFoundException e) {
             Log.d(this.getClass().getSimpleName(), "*&*&* There is no seeds.yaml file: " + e.toString());
             new SampleData();
+        } catch (Exception e) {
+            Log.d(this.getClass().getSimpleName(), "*&*&* There is an error with seeds.yaml file: " + e.toString());
         }
+        writeDataForSeeds();
     }
 
     void writeDataForSeeds() {
         YamlWriter writer = new YamlWriter();
         String filePath = ifand.filesPublic + "/" + "seeds.yaml";
         for( String name : seeds.keySet()) {
-            Log.d(this.getClass().getSimpleName(), "*&*&* writeDataForSeeds(" + name + ")");
+            Log.d(this.getClass().getSimpleName(), "*&*&* writeDataForSeeds(" + name + ", " + filePath + ")");
             Map<String, Object> o = seeds.get(name);
             writer.writeYamlFile(filePath, o);
         }
