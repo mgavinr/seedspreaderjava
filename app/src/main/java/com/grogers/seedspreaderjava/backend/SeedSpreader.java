@@ -1,8 +1,12 @@
 package com.grogers.seedspreaderjava.backend;
 import android.content.Context;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.os.Environment;
 import android.util.Log;
+import android.widget.ImageView;
 
+import com.grogers.seedspreaderjava.R;
 import com.grogers.seedspreaderjava.frontend.SeedApplication;
 
 import org.yaml.snakeyaml.DumperOptions;
@@ -12,6 +16,7 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.HashMap;
@@ -90,6 +95,7 @@ class ifAndroid {
     // public
     ///*  /storage/emulated/0/Android/data/com.grogers.seedspreaderjava/files/Documents/seed.yaml */
     public File filesPublic = context.getExternalFilesDir(Environment.DIRECTORY_DOCUMENTS);
+    public File imageFilesPublic = context.getExternalFilesDir(Environment.DIRECTORY_PICTURES);
 
     /* Cache */
     ///* /data/user/0/com.grogers.seedspreaderjava/cache/seed.yaml */
@@ -97,31 +103,54 @@ class ifAndroid {
     // public
     // /* /storage/emulated/0/Android/data/com.grogers.seedspreaderjava/cache/seed.yaml */
     public File cachePublic = context.getExternalCacheDir();
+
+    public void getWriteBitmap(String resource, FileOutputStream fos) {
+        if (resource == "sample-chili") BitmapFactory.decodeResource(context.getResources(), R.drawable.sample_chili).compress(Bitmap.CompressFormat.JPEG, 100, fos);
+        else if (resource == "sample_chili_back") BitmapFactory.decodeResource(context.getResources(), R.drawable.sample_chili_back).compress(Bitmap.CompressFormat.JPEG, 100, fos);
+        else if (resource == "sample_tomoato") BitmapFactory.decodeResource(context.getResources(), R.drawable.sample_tomato).compress(Bitmap.CompressFormat.JPEG, 100, fos);
+        else if (resource == "sample_tomoato_back") BitmapFactory.decodeResource(context.getResources(), R.drawable.sample_tomato_back).compress(Bitmap.CompressFormat.JPEG, 100, fos);
+    }
 }
 class SampleData {
     static public ifAndroid ifand = ifAndroid.getInstance();
     static public boolean seeds = false;
     static public boolean trays = false;
+    static public boolean images = false;
+
+    // maybe call flush before close
+    static void createImages() {
+        images = true;
+        for (String image : List.of("sample_chili", "sample_chili_back")) {
+            try {
+                String filePath = ifand.imageFilesPublic + "/" + image + ".jpg";
+                FileOutputStream fos = new FileOutputStream(filePath);
+                ifAndroid.getInstance().getWriteBitmap("sample", fos);
+                fos.close();
+            } catch (IOException e) {
+                Log.e(SampleData.class.getSimpleName(), "*&*&* Could not write sample data: " + e);
+            }
+        }
+    }
+
 
     static void createSeeds() {
-
         seeds = true;
-        String sampleTrays = "---\n"+
-"image: sweetnotpepper.jpg\n"+
-"year:\n"+
-"- 2023\n"+
-"name: Sweet Pepper\n"+
-"description: A sweet pepper plant for me\n"+
-"---\n"+
-"image: chilitpepper.jpg\n"+
-"year:\n"+
-"- 2023\n"+
-"name: Chili Pepper\n"+
-"description: A chili pepper plant for me woohoo!!\n";
+        String sample = "---\n" +
+                "image: sweetnotpepper.jpg\n" +
+                "year:\n" +
+                "- 2023\n" +
+                "name: Sweet Pepper\n" +
+                "description: A sweet pepper plant for me\n" +
+                "---\n" +
+                "image: chilitpepper.jpg\n" +
+                "year:\n" +
+                "- 2023\n" +
+                "name: Chili Pepper\n" +
+                "description: A chili pepper plant for me woohoo!!\n";
         try {
             String filePath = ifand.filesPublic + "/" + "seeds.yaml";
             BufferedWriter writer = new BufferedWriter(new FileWriter(filePath));
-            writer.write(sampleTrays);
+            writer.write(sample);
             writer.close();
         } catch (IOException e) {
             Log.e(SampleData.class.getSimpleName(), "*&*&* Could not write sample data: " + e);
@@ -130,24 +159,24 @@ class SampleData {
 
     static void createTrays() {
         trays = true;
-        String sampleTrays = "---\n"+
-"name: Fruit Tray\n"+
-"description: A tray holding fruits\n"+
-"rows: 10\n"+
-"cols: 10\n"+
-"image: fruittray.jpg\n"+
-"year:\n"+
-"- 2023\n"+
-"contents\n"+
-"- -   name: Chili\n"+
-"      date: 2023\n"+
-"      event: planted\n"+
-"  -   name: Chili\n"+
-"      date: 2023\n"+
-"      event: seedling\n"+
-"- -   name: Sweet Pepper\n"+
-"      date: 2023\n"+
-"      event: planted\n";
+        String sampleTrays = "---\n" +
+                "name: Fruit Tray\n" +
+                "description: A tray holding fruits\n" +
+                "rows: 10\n" +
+                "cols: 10\n" +
+                "image: fruittray.jpg\n" +
+                "year:\n" +
+                "- 2023\n" +
+                "contents\n" +
+                "- -   name: Chili\n" +
+                "      date: 2023\n" +
+                "      event: planted\n" +
+                "  -   name: Chili\n" +
+                "      date: 2023\n" +
+                "      event: seedling\n" +
+                "- -   name: Sweet Pepper\n" +
+                "      date: 2023\n" +
+                "      event: planted\n";
         try {
             String filePath = ifand.filesPublic + "/" + "trays.yaml";
             BufferedWriter writer = new BufferedWriter(new FileWriter(filePath));
@@ -178,6 +207,7 @@ public class SeedSpreader {
     public void start() {
         readDataForSeeds();
         readDataForTrays();
+        readImages();
     }
 
     /**
@@ -187,17 +217,18 @@ public class SeedSpreader {
     /* table is thread safe HashMap is modern not thread safe */
     public Hashtable<String, Map<String, Object> > trays = new Hashtable<String, Map<String, Object> >();
     public Hashtable<String, Map<String, Object> > seeds = new Hashtable<String, Map<String, Object> >();
+    public Hashtable<String, Bitmap> images = new Hashtable<String, Bitmap>();
+    public boolean scale = true;
 
     /**
      * Read all data from filesystem
      *
      */
     void readDataForSeeds() {
-        YamlReader reader = new YamlReader();
-        String filePath = ifand.filesPublic + "/" + "seeds.yaml";
-        Log.d(this.getClass().getSimpleName(), "*&*&* readDataForSeeds(" + filePath + ")");
         try {
-            // this is internal String filePath = ifand.context.getFilesDir() + "seeds.yaml";
+            YamlReader reader = new YamlReader();
+            String filePath = ifand.filesPublic + "/" + "seeds.yaml";
+            Log.d(this.getClass().getSimpleName(), "*&*&* readDataForSeeds(" + filePath + ")");
             reader.readYamlFile(filePath, new YamlReader.Callback() {
                 @Override
                 public void onCallback(Map<String, Object> yamlData) {
@@ -207,12 +238,14 @@ public class SeedSpreader {
             Log.d(this.getClass().getSimpleName(), "*&*&* readDataForSeeds done, read " + seeds.size() + " seeds");
         } catch (FileNotFoundException e) {
             Log.d(this.getClass().getSimpleName(), "*&*&* There is no seeds.yaml file: " + e.toString());
-            if( SampleData.seeds == false) {
+        } catch (Exception e) {
+            Log.d(this.getClass().getSimpleName(), "*&*&* There is an error with seeds.yaml file: " + e.toString());
+        }
+        if(seeds.size() == 0) {
+            if (SampleData.seeds == false) {
                 SampleData.createSeeds();
                 readDataForSeeds();
             }
-        } catch (Exception e) {
-            Log.d(this.getClass().getSimpleName(), "*&*&* There is an error with seeds.yaml file: " + e.toString());
         }
         writeDataForSeeds();
     }
@@ -231,13 +264,50 @@ public class SeedSpreader {
      * Read all data from filesystem
      *
      */
-    void readDataForTrays() {
-        YamlReader reader = new YamlReader();
-        String filePath = ifand.filesPublic + "/" + "trays.yaml";
-        Log.d(this.getClass().getSimpleName(), "*&*&* readDataForTrays(" + filePath + ")");
+    void readImages() {
         try {
-            // this is internal String filePath = ifand.context.getFilesDir() + "trays.yaml";
-            //throw new FileNotFoundException("not found");
+            File filePath = ifand.imageFilesPublic;
+            Log.d(this.getClass().getSimpleName(), "*&*&* readImages(" + filePath + ")");
+            File[] files = filePath.listFiles();
+            for (File file : files) {
+                FileInputStream fileInputStream = new FileInputStream(file);
+                Log.d(this.getClass().getSimpleName(), "*&*&* readImages read " + file.getName());
+                Bitmap bitmap = BitmapFactory.decodeFile(file.getAbsolutePath());
+                if(bitmap.getWidth() == 1000) {
+                    images.put(file.getName(), bitmap);
+                } else {
+                    Log.d(this.getClass().getSimpleName(), "*&*&* Scaling image from " + bitmap.getWidth());
+                    Bitmap scaledBitmap = Bitmap.createScaledBitmap(bitmap, 1000,1500, false);
+                    images.put(file.getName(), scaledBitmap);
+                }
+            }
+        } catch (FileNotFoundException e) {
+            Log.d(this.getClass().getSimpleName(), "*&*&* There is no images: " + e.toString());
+        } catch (Exception e) {
+            Log.d(this.getClass().getSimpleName(), "*&*&* There is an error with images file: " + e.toString());
+        }
+
+        if(images.size() == 0) {
+            if( SampleData.images == false) {
+                SampleData.createImages();
+                readImages();
+            }
+        }
+        writeImages();
+    }
+
+    void writeImages() {
+    }
+
+    /**
+     * Read all data from filesystem
+     *
+     */
+    void readDataForTrays() {
+        try {
+            YamlReader reader = new YamlReader();
+            String filePath = ifand.filesPublic + "/" + "trays.yaml";
+            Log.d(this.getClass().getSimpleName(), "*&*&* readDataForTrays(" + filePath + ")");
             reader.readYamlFile(filePath, new YamlReader.Callback() {
                 @Override
                 public void onCallback(Map<String, Object> yamlData) {
@@ -247,12 +317,14 @@ public class SeedSpreader {
             Log.d(this.getClass().getSimpleName(), "*&*&* readDataForTrays done, read " + trays.size() + " trays");
         } catch (FileNotFoundException e) {
             Log.d(this.getClass().getSimpleName(), "*&*&* There is no trays.yaml file: " + e.toString());
-            if( SampleData.trays == false) {
+        } catch (Exception e) {
+            Log.d(this.getClass().getSimpleName(), "*&*&* There is an error with trays.yaml file: " + e.toString());
+        }
+        if (trays.size() == 0) {
+            if (SampleData.trays == false) {
                 SampleData.createTrays();
                 readDataForTrays();
             }
-        } catch (Exception e) {
-            Log.d(this.getClass().getSimpleName(), "*&*&* There is an error with trays.yaml file: " + e.toString());
         }
         writeDataForTrays();
     }

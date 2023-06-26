@@ -34,6 +34,8 @@ cancel the contract with Board Gais, as it hasn't been cold or needed at all in 
 at work, at least.  It's just a wasting monthly expenditure.  Again, I am often thanked ..
 
  */
+/* 4128 × 3096 pixels 5MB for a good photo  HORIZ */
+/* 3096 × 4128 pixels 5MB for a good photo VERT */
 
 /* Hello loser can you please let us know what the API is that you are using and remove this
 garbage so we can see it too
