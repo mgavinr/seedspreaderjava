@@ -8,6 +8,7 @@ import android.widget.ImageView;
 
 import com.grogers.seedspreaderjava.R;
 import com.grogers.seedspreaderjava.frontend.SeedApplication;
+import com.grogers.seedspreaderjava.backend.SampleData;
 
 import org.yaml.snakeyaml.DumperOptions;
 import org.yaml.snakeyaml.Yaml;
@@ -34,7 +35,7 @@ class YamlReader {
         Yaml yaml = new Yaml();
         FileInputStream fileInputStream = new FileInputStream(filePath);
         if (multiple) {
-            Log.d(this.getClass().getSimpleName(), "*&*&* Reading multiple yaml documents");
+            Log.d(this.getClass().getSimpleName(), "*&*&* readYamlFile: Reading multiple yaml documents");
             Iterable<Object> documents = yaml.loadAll(fileInputStream);
             Iterator<Object> iterator = documents.iterator();
             while(iterator.hasNext()) {
@@ -47,7 +48,7 @@ class YamlReader {
                 }
             }
         } else {
-            Log.d(this.getClass().getSimpleName(), "*&*&* Reading single yaml documents");
+            Log.d(this.getClass().getSimpleName(), "*&*&* readYamlFile: Reading single yaml documents");
             Map<String, Object> yamlData = yaml.load(fileInputStream);
             Log.d(this.getClass().getSimpleName(), "*&*&* YAML file read successfully.");
             Log.d(this.getClass().getSimpleName(), "*&*&*" + yaml.dump(yamlData));
@@ -77,117 +78,6 @@ class YamlWriter {
     }
 }
 
-class ifAndroid {
-    public static ifAndroid instance = null;
-    public static ifAndroid getInstance() {
-        if (instance == null) {
-            instance = new ifAndroid();
-        }
-        return instance;
-    }
-    public Context context = SeedApplication.getContext();
-
-    /* Files */
-    ///* /data/user/0/com.grogers.seedspreaderjava/seed.yaml */
-    public File filesPrivateParent = context.getDataDir();
-    ///* /data/user/0/com.grogers.seedspreaderjava/files/seed.yaml */
-    public File filesPrivate = context.getFilesDir();
-    // public
-    ///*  /storage/emulated/0/Android/data/com.grogers.seedspreaderjava/files/Documents/seed.yaml */
-    public File filesPublic = context.getExternalFilesDir(Environment.DIRECTORY_DOCUMENTS);
-    public File imageFilesPublic = context.getExternalFilesDir(Environment.DIRECTORY_PICTURES);
-
-    /* Cache */
-    ///* /data/user/0/com.grogers.seedspreaderjava/cache/seed.yaml */
-    public File cachePrivate = context.getCacheDir();
-    // public
-    // /* /storage/emulated/0/Android/data/com.grogers.seedspreaderjava/cache/seed.yaml */
-    public File cachePublic = context.getExternalCacheDir();
-
-    public void getWriteBitmap(String resource, FileOutputStream fos) {
-        if (resource == "sample-chili") BitmapFactory.decodeResource(context.getResources(), R.drawable.sample_chili).compress(Bitmap.CompressFormat.JPEG, 100, fos);
-        else if (resource == "sample_chili_back") BitmapFactory.decodeResource(context.getResources(), R.drawable.sample_chili_back).compress(Bitmap.CompressFormat.JPEG, 100, fos);
-        else if (resource == "sample_tomoato") BitmapFactory.decodeResource(context.getResources(), R.drawable.sample_tomato).compress(Bitmap.CompressFormat.JPEG, 100, fos);
-        else if (resource == "sample_tomoato_back") BitmapFactory.decodeResource(context.getResources(), R.drawable.sample_tomato_back).compress(Bitmap.CompressFormat.JPEG, 100, fos);
-    }
-}
-class SampleData {
-    static public ifAndroid ifand = ifAndroid.getInstance();
-    static public boolean seeds = false;
-    static public boolean trays = false;
-    static public boolean images = false;
-
-    // maybe call flush before close
-    static void createImages() {
-        images = true;
-        for (String image : List.of("sample_chili", "sample_chili_back")) {
-            try {
-                String filePath = ifand.imageFilesPublic + "/" + image + ".jpg";
-                FileOutputStream fos = new FileOutputStream(filePath);
-                ifAndroid.getInstance().getWriteBitmap("sample", fos);
-                fos.close();
-            } catch (IOException e) {
-                Log.e(SampleData.class.getSimpleName(), "*&*&* Could not write sample data: " + e);
-            }
-        }
-    }
-
-
-    static void createSeeds() {
-        seeds = true;
-        String sample = "---\n" +
-                "image: sweetnotpepper.jpg\n" +
-                "year:\n" +
-                "- 2023\n" +
-                "name: Sweet Pepper\n" +
-                "description: A sweet pepper plant for me\n" +
-                "---\n" +
-                "image: chilitpepper.jpg\n" +
-                "year:\n" +
-                "- 2023\n" +
-                "name: Chili Pepper\n" +
-                "description: A chili pepper plant for me woohoo!!\n";
-        try {
-            String filePath = ifand.filesPublic + "/" + "seeds.yaml";
-            BufferedWriter writer = new BufferedWriter(new FileWriter(filePath));
-            writer.write(sample);
-            writer.close();
-        } catch (IOException e) {
-            Log.e(SampleData.class.getSimpleName(), "*&*&* Could not write sample data: " + e);
-        }
-    }
-
-    static void createTrays() {
-        trays = true;
-        String sampleTrays = "---\n" +
-                "name: Fruit Tray\n" +
-                "description: A tray holding fruits\n" +
-                "rows: 10\n" +
-                "cols: 10\n" +
-                "image: fruittray.jpg\n" +
-                "year:\n" +
-                "- 2023\n" +
-                "contents\n" +
-                "- -   name: Chili\n" +
-                "      date: 2023\n" +
-                "      event: planted\n" +
-                "  -   name: Chili\n" +
-                "      date: 2023\n" +
-                "      event: seedling\n" +
-                "- -   name: Sweet Pepper\n" +
-                "      date: 2023\n" +
-                "      event: planted\n";
-        try {
-            String filePath = ifand.filesPublic + "/" + "trays.yaml";
-            BufferedWriter writer = new BufferedWriter(new FileWriter(filePath));
-            writer.write(sampleTrays);
-            writer.close();
-        } catch (IOException e) {
-            Log.e(SampleData.class.getSimpleName(), "*&*&* Could not write sample data: " + e);
-        }
-    }
-}
-
 public class SeedSpreader {
     /**
      * Constructors
@@ -213,7 +103,8 @@ public class SeedSpreader {
     /**
      * Public Fields
      */
-    public ifAndroid ifand = ifAndroid.getInstance();
+    public boolean sampleData = true;
+    public IFrontend frontend = IFrontend.getInstance();
     /* table is thread safe HashMap is modern not thread safe */
     public Hashtable<String, Map<String, Object> > trays = new Hashtable<String, Map<String, Object> >();
     public Hashtable<String, Map<String, Object> > seeds = new Hashtable<String, Map<String, Object> >();
@@ -221,13 +112,12 @@ public class SeedSpreader {
     public boolean scale = true;
 
     /**
-     * Read all data from filesystem
-     *
+     * Read seeds.yaml document and store in a Map name -> anything
      */
     void readDataForSeeds() {
         try {
             YamlReader reader = new YamlReader();
-            String filePath = ifand.filesPublic + "/" + "seeds.yaml";
+            String filePath = frontend.filesPublic + "/" + "seeds.yaml";
             Log.d(this.getClass().getSimpleName(), "*&*&* readDataForSeeds(" + filePath + ")");
             reader.readYamlFile(filePath, new YamlReader.Callback() {
                 @Override
@@ -235,24 +125,30 @@ public class SeedSpreader {
                     seeds.put(yamlData.get("name").toString(), yamlData);
                 }
             });
-            Log.d(this.getClass().getSimpleName(), "*&*&* readDataForSeeds done, read " + seeds.size() + " seeds");
+            Log.d(this.getClass().getSimpleName(), "*&*&* readDataForSeeds done, read " + seeds.size() + " seeds from AndroidFS");
         } catch (FileNotFoundException e) {
-            Log.d(this.getClass().getSimpleName(), "*&*&* There is no seeds.yaml file: " + e.toString());
+            Log.d(this.getClass().getSimpleName(), "*&*&* readDataForSeeds no seeds.yaml file: " + e.toString());
         } catch (Exception e) {
-            Log.d(this.getClass().getSimpleName(), "*&*&* There is an error with seeds.yaml file: " + e.toString());
+            Log.d(this.getClass().getSimpleName(), "*&*&* readDataForSeeds has an error with seeds.yaml file: " + e.toString());
         }
-        if(seeds.size() == 0) {
+        if(sampleData || seeds.size() == 0) {
             if (SampleData.seeds == false) {
+                Log.d(this.getClass().getSimpleName(), "*&*&* readDataForSeeds() use sample data");
                 SampleData.createSeeds();
+                Log.d(this.getClass().getSimpleName(), "*&*&* readDataForSeeds() re-reading from sample data");
                 readDataForSeeds();
             }
+        } else {
+            writeDataForSeeds();
         }
-        writeDataForSeeds();
     }
 
+    /**
+     * Write seeds.yaml document (reopens file and appends, auto adds ---)
+     */
     void writeDataForSeeds() {
         YamlWriter writer = new YamlWriter();
-        String filePath = ifand.filesPublic + "/" + "seeds.yaml";
+        String filePath = frontend.filesPublic + "/" + "seeds.yaml";
         for( String name : seeds.keySet()) {
             Log.d(this.getClass().getSimpleName(), "*&*&* writeDataForSeeds(" + name + ", " + filePath + ")");
             Map<String, Object> o = seeds.get(name);
@@ -261,12 +157,11 @@ public class SeedSpreader {
     }
 
     /**
-     * Read all data from filesystem
-     *
+     * Read all images from fileystem (/storage/emulated/0/Android/data/com.grogers.seedspreaderjava/files/Pictures/*)
      */
     void readImages() {
         try {
-            File filePath = ifand.imageFilesPublic;
+            File filePath = frontend.imageFilesPublic;
             Log.d(this.getClass().getSimpleName(), "*&*&* readImages(" + filePath + ")");
             File[] files = filePath.listFiles();
             for (File file : files) {
@@ -276,37 +171,60 @@ public class SeedSpreader {
                 if(bitmap.getWidth() == 1000) {
                     images.put(file.getName(), bitmap);
                 } else {
-                    Log.d(this.getClass().getSimpleName(), "*&*&* Scaling image from " + bitmap.getWidth());
+                    Log.d(this.getClass().getSimpleName(), "*&*&* readImages Scaling image from " + bitmap.getWidth());
                     Bitmap scaledBitmap = Bitmap.createScaledBitmap(bitmap, 1000,1500, false);
                     images.put(file.getName(), scaledBitmap);
                 }
             }
+            Log.d(this.getClass().getSimpleName(), "*&*&* readImages done, read " + images.size() + " images from AndroidFS");
         } catch (FileNotFoundException e) {
-            Log.d(this.getClass().getSimpleName(), "*&*&* There is no images: " + e.toString());
+            Log.d(this.getClass().getSimpleName(), "*&*&* readImages: There is no image: " + e.toString());
         } catch (Exception e) {
-            Log.d(this.getClass().getSimpleName(), "*&*&* There is an error with images file: " + e.toString());
+            Log.d(this.getClass().getSimpleName(), "*&*&* readImages: There is an error with images file: " + e.toString());
         }
 
-        if(images.size() == 0) {
+        if(sampleData || images.size() == 0) {
             if( SampleData.images == false) {
+                Log.d(this.getClass().getSimpleName(), "*&*&* readImages use sample data");
                 SampleData.createImages();
+                Log.d(this.getClass().getSimpleName(), "*&*&* readImages re-reading from sample data");
                 readImages();
             }
+        } else {
+            Log.d(this.getClass().getSimpleName(), "*&*&* readImages There are " + images.size() +" images");
+            writeImages();
         }
-        writeImages();
-    }
-
-    void writeImages() {
     }
 
     /**
-     * Read all data from filesystem
-     *
+     * Write each image (/storage/emulated/0/Android/data/com.grogers.seedspreaderjava/files/Pictures/*)
+     */
+    void writeImages() {
+        File filePath = frontend.imageFilesPublic;
+        Log.d(this.getClass().getSimpleName(), "*&*&* writeImages(size=" + images.size() + ", to=" + filePath + ")");
+        for (String name : images.keySet()) {
+            try {
+                File file = new File(filePath, name);
+                FileOutputStream fileOutputStream = new FileOutputStream(file);
+                Log.d(this.getClass().getSimpleName(), "*&*&* writeImages " + file.getName());
+                Bitmap bitmap = images.get(name);
+                bitmap.compress(Bitmap.CompressFormat.JPEG, 100, fileOutputStream);
+                fileOutputStream.close();
+            } catch (IOException e) {
+                Log.d(this.getClass().getSimpleName(), "*&*&* writeImages failed for ioe " + name);
+            } catch (Exception e) {
+                Log.d(this.getClass().getSimpleName(), "*&*&* writeImages failed for " + name);
+            }
+        }
+    }
+
+    /**
+     * Read trays.yaml document and store in a Map name -> anything
      */
     void readDataForTrays() {
         try {
             YamlReader reader = new YamlReader();
-            String filePath = ifand.filesPublic + "/" + "trays.yaml";
+            String filePath = frontend.filesPublic + "/" + "trays.yaml";
             Log.d(this.getClass().getSimpleName(), "*&*&* readDataForTrays(" + filePath + ")");
             reader.readYamlFile(filePath, new YamlReader.Callback() {
                 @Override
@@ -314,24 +232,30 @@ public class SeedSpreader {
                     trays.put(yamlData.get("name").toString(), yamlData);
                 }
             });
-            Log.d(this.getClass().getSimpleName(), "*&*&* readDataForTrays done, read " + trays.size() + " trays");
+            Log.d(this.getClass().getSimpleName(), "*&*&* readDataForTrays done, read " + trays.size() + " trays from AndroidFS");
         } catch (FileNotFoundException e) {
-            Log.d(this.getClass().getSimpleName(), "*&*&* There is no trays.yaml file: " + e.toString());
+            Log.d(this.getClass().getSimpleName(), "*&*&* readDataForTrays There is no trays.yaml file: " + e.toString());
         } catch (Exception e) {
-            Log.d(this.getClass().getSimpleName(), "*&*&* There is an error with trays.yaml file: " + e.toString());
+            Log.d(this.getClass().getSimpleName(), "*&*&* readDataForTrays There is an error with trays.yaml file: " + e.toString());
         }
-        if (trays.size() == 0) {
+        if (sampleData || trays.size() == 0) {
             if (SampleData.trays == false) {
+                Log.d(this.getClass().getSimpleName(), "*&*&* readDataForTrays use sample data");
                 SampleData.createTrays();
+                Log.d(this.getClass().getSimpleName(), "*&*&* readDataForTrays re-reading from sample data");
                 readDataForTrays();
             }
+        } else {
+            writeDataForTrays();
         }
-        writeDataForTrays();
     }
 
+    /**
+     * Write trays.yaml document (reopens file and appends, auto adds ---)
+     */
     void writeDataForTrays() {
         YamlWriter writer = new YamlWriter();
-        String filePath = ifand.filesPublic + "/" + "trays.yaml";
+        String filePath = frontend.filesPublic + "/" + "trays.yaml";
         for( String name : trays.keySet()) {
             Log.d(this.getClass().getSimpleName(), "*&*&* writeDataForTrays(" + name + ", " + filePath + ")");
             Map<String, Object> o = trays.get(name);

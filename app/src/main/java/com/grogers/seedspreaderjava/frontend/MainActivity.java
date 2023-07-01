@@ -14,39 +14,57 @@ import android.widget.TextView;
 import com.grogers.seedspreaderjava.R;
 import com.grogers.seedspreaderjava.backend.SeedSpreader;
 
-/*
-** TODO list
-*   we need to come up with a naming style that makes sense
+import java.time.LocalDateTime;
+import java.util.Hashtable;
+import java.util.Map;
+
+
+/**
+ * This class displays: A heading, settings button, new tray button, and TrayFragment
  */
 public class MainActivity extends AppCompatActivity {
-    SeedSpreader seedSpreader = null;
+    /**
+     * Public member variables
+     */
+    public IBackend backend = null;
+    /**
+     * onCreate is called first
+     * @param savedInstanceState If the activity is being re-initialized after
+     *     previously being shut down then this Bundle contains the data it most
+     *     recently supplied in {@link #onSaveInstanceState}.  <b><i>Note: Otherwise it is null.</i></b>
+     *
+     */
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        Log.d(this.getClass().getSimpleName(), "*&* /////////////////////////////////////// MainActivity onCreate()");
+        Log.d(this.getClass().getSimpleName(), "*&* This is a log file");
+        backend = IBackend.getInstance();
+        onCreateFill(savedInstanceState);
+    }
+    protected void onCreateFill(Bundle savedInstanceState) {
+        LinearLayout main = (LinearLayout) findViewById(R.id.linearLayoutMain);
+        LocalDateTime currentDateTime = LocalDateTime.now();
+
+        /* Fill in the message of the day */
         View v = findViewById(R.id.textViewMotd);
         TextView vv = (TextView) v;
-        vv.setText("This is message of the day");
-        Log.d(this.getClass().getSimpleName(), "*&* ///////////////////////////////////////");
-        Log.d(this.getClass().getSimpleName(), "*&* This is a log file");
-        seedSpreader = SeedSpreader.getInstance();
-        LinearLayout mainll = (LinearLayout) findViewById(R.id.linearLayoutMain);
+        vv.setText("" + backend.seedSpreader.trays.size() + " trays, " + backend.seedSpreader.seeds.size() + " seeds, " + backend.seedSpreader.images.size() + " images. " + currentDateTime);
 
-        // Create a tray
-        TrayFragment tray1 = TrayFragment.newInstance("Tray1", "tray1");
-        TrayFragment tray2 = TrayFragment.newInstance("Tray2", "tray2");
-
-        // add it
+        /* Fill in the fragments */
+        // notes: https://stackoverflow.com/questions/17261633/multiple-fragments-in-a-vertical-linearlayout
         FragmentManager fm = getSupportFragmentManager();
         FragmentTransaction ft = fm.beginTransaction();
-
-        ft.add(R.id.linearLayoutFrag, tray1, tray1.getClass().toString());
-        ft.commit();
-        fm.executePendingTransactions();
-
-        /*  https://stackoverflow.com/questions/17261633/multiple-fragments-in-a-vertical-linearlayout */
-        ft = fm.beginTransaction();
-        ft.add(R.id.linearLayoutFrag, tray2, tray2.getClass().toString());
+        Log.d(this.getClass().getSimpleName(), "*&* Adding " + backend.getTrays().size());
+        for (String trayName : backend.getTrays()) {
+            Log.d(this.getClass().getSimpleName(), "*&* Adding a fragment " + trayName);
+            Map<String, Object> tray = backend.getTray(trayName);
+            String imageName = (String) tray.get("image");
+            Log.d(this.getClass().getSimpleName(), "*&* Adding a fragment " + trayName + " image " + imageName);
+            TrayFragment trayFragment = TrayFragment.newInstance(trayName, imageName);
+            ft.add(R.id.linearLayoutFrag, trayFragment, trayName);
+        }
         ft.commit();
         fm.executePendingTransactions();
     }

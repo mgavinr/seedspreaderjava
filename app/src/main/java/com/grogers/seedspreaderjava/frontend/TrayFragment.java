@@ -1,6 +1,7 @@
 package com.grogers.seedspreaderjava.frontend;
 
 import android.content.Intent;
+import android.graphics.Bitmap;
 import android.os.Bundle;
 
 import androidx.annotation.NonNull;
@@ -15,6 +16,7 @@ import android.widget.Button;
 import android.widget.ImageView;
 
 import com.grogers.seedspreaderjava.R;
+import com.grogers.seedspreaderjava.backend.IFrontend;
 
 /**
  * A simple {@link Fragment} subclass.
@@ -31,6 +33,8 @@ public class TrayFragment extends Fragment {
     // TODO: Rename and change types of parameters
     private String name;
     private String picture;
+
+    public IBackend backend = IBackend.getInstance();
 
     public TrayFragment() {
         // Required empty public constructor
@@ -76,13 +80,17 @@ public class TrayFragment extends Fragment {
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
+        //
         Button name = (Button) view.findViewById(R.id.ftTrayNameButton);
         name.setText(this.name);
-        int resourceId = getContext().getResources().getIdentifier(picture, "drawable", SeedApplication.getContext().getPackageName());
-        ImageView image = (ImageView) view.findViewById(R.id.ftPicture);
-        image.setImageResource(R.drawable.tray1);
-        Log.d(this.getClass().getSimpleName(), "*&* The id for drawing " + name + " is " + resourceId);
-        image.setImageResource(resourceId);
+        //
+        Bitmap bitmap = backend.getImage(this.picture);
+        if (bitmap != null) {
+            ImageView image = (ImageView) view.findViewById(R.id.ftPicture);
+            image.setImageBitmap(bitmap);
+        } else {
+            Log.d(this.getClass().getSimpleName(), "*&* fragment has no image: " + this.picture);
+        }
     }
 
     public void ftTrayNameEventClick(View view) {
