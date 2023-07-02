@@ -11,6 +11,10 @@ import java.util.Map;
 
 public class IBackend {
     public static IBackend instance = null;
+    public String trayName = null;
+    public String trayImageName = null;
+    Bitmap trayImage = null;
+    public Map<String, Object> tray = null;
 
     public static IBackend getInstance() {
         if (instance == null) {
@@ -29,16 +33,22 @@ public class IBackend {
     }
 
     public Bitmap getImage(String imageName) {
-        Bitmap rv = seedSpreader.images.get(imageName);
-        if (rv == null) {
+        this.trayImageName = imageName;
+        trayImage = seedSpreader.images.get(imageName);
+        if (trayImage == null) {
             Log.d(this.getClass().getSimpleName(), "*&* Not--found: " + imageName);
             Log.d(this.getClass().getSimpleName(), "*&* Images are: " + seedSpreader.images.keySet().toString());
         }
-        return rv;
+        return trayImage;
     }
 
-
-    Map<String, Object> getTray(String trayName) {
-        return seedSpreader.trays.get(trayName);
+    Map<String, Object> getTray(String name) {
+        this.trayName = name;
+        tray = seedSpreader.trays.get(name);
+        if (tray == null) {
+            Log.d(this.getClass().getSimpleName(), "*&* Not--found: " + name);
+            Log.d(this.getClass().getSimpleName(), "*&* Images are: " + seedSpreader.trays.keySet().toString());
+        }
+        return tray;
     }
 }

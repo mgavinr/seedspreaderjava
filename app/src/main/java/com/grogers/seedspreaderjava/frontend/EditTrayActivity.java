@@ -9,6 +9,7 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import android.app.Activity;
 import android.content.ActivityNotFoundException;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Bitmap;
@@ -27,65 +28,14 @@ import android.widget.TextView;
 
 import com.grogers.seedspreaderjava.R;
 
-public class EditTrayActivity extends AppCompatActivity
-        implements View.OnLongClickListener, ActivityResultCallback<ActivityResult>
-{
-
-    private static final int REQUEST_IMAGE_CAPTURE = 1;
-    private ActivityResultLauncher<Intent> launcher;
-    private ImageView tray;
-
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_edit_tray);
-        launcher = registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), this);
-
-        tray = findViewById(R.id.aetTrayImage);
-        tray.setOnLongClickListener(this);
+class Register {
+    Context context;
+    public Register(Context context) {
+        this.context = context;
     }
-
-    @Override
-    public boolean onLongClick(View v) {
-        Log.d(this.getClass().getSimpleName(), "*&* Yay! on long click");
-        Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-        launcher.launch(intent);
-        return true;
-    }
-
-    @Override
-    public void onActivityResult(ActivityResult result) {
-        Log.d(this.getClass().getSimpleName(), "*&* Yay! on long click result");
-        if (result.getResultCode() == Activity.RESULT_OK) {
-            // The image capture was successful. You can access the captured image here.
-            Intent data = result.getData();
-            Bundle extras = data.getExtras();
-            Bitmap imageBitmap = (Bitmap) extras.get("data");
-            // Do something with the imageBitmap, such as displaying it in an ImageView
-            tray.setImageBitmap(imageBitmap);
-        }
-    }
-
-    public void aetAddSeedsEvent(View view) {
-        Log.d(this.getClass().getSimpleName(), "*&* aetAddSeedsEvent()");
-        AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        builder.setTitle("Planting Seeds");
-        LinearLayout linearLayout = newSeedLayout();
-        builder.setView(linearLayout);
-        builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-                // Get the selected items
-                Log.d(this.getClass().getSimpleName(), "*&* onclick for the dialog seeds");
-            }
-        });
-        builder.create();
-        builder.show();
-    }
-
-    public void aetRegisterEvent(View view) {
+    public void onClick(View view) {
         Log.d(this.getClass().getSimpleName(), "*&* aetRegisterEvent()");
-        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        AlertDialog.Builder builder = new AlertDialog.Builder(context);
         builder.setTitle("Register Event");
         LinearLayout linearLayout = newRegisterLayout();
         builder.setView(linearLayout);
@@ -100,61 +50,102 @@ public class EditTrayActivity extends AppCompatActivity
         builder.show();
     }
 
-    /*
-     ** extra functions, ideally you would just follow this instead:
-     * https://developer.android.com/develop/ui/views/components/dialogs
-     ** but these could be useful sometime.
+    /**
+     * Quick way to create a dialog to allow you to register an event, it maynot be best code
+     * @return
      */
     public LinearLayout newRegisterLayout() {
-        LinearLayout linearLayout = new LinearLayout(this);
+        // notes
+        // * https://developer.android.com/develop/ui/views/components/dialogs
+        LinearLayout linearLayout = new LinearLayout(context);
         linearLayout.setOrientation(LinearLayout.VERTICAL);
         linearLayout.setPadding(8,16,8,8);
-        linearLayout.addView(new TextView(this));
-        linearLayout.addView(new EditText(this));
-        linearLayout.addView(new TextView(this));
-        linearLayout.addView(new EditText(this));
-        linearLayout.addView(new TextView(this));
-        linearLayout.addView(new EditText(this));
+        linearLayout.addView(new TextView(context));
+        linearLayout.addView(new EditText(context));
+        linearLayout.addView(new TextView(context));
+        linearLayout.addView(new EditText(context));
+        linearLayout.addView(new TextView(context));
+        linearLayout.addView(new EditText(context));
         ((TextView) linearLayout.getChildAt(0)).setText("Row/Column(s)");
         ((TextView) linearLayout.getChildAt(2)).setText("Date");
         ((TextView) linearLayout.getChildAt(4)).setText("Event");
         return linearLayout;
     }
+}
+class Seed {
+    Context context;
+    public Seed(Context context) {
+        this.context = context;
+    }
+    void onClick(View view) {
+        Log.d(this.getClass().getSimpleName(), "*&* aetAddSeedsEvent()");
+        AlertDialog.Builder builder = new AlertDialog.Builder(context);
+        builder.setTitle("Planting Seeds");
+        LinearLayout linearLayout = newSeedLayout();
+        builder.setView(linearLayout);
+        builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                // Get the selected items
+                Log.d(this.getClass().getSimpleName(), "*&* onclick for the dialog seeds");
+            }
+        });
+        builder.create();
+        builder.show();
+    }
 
     public LinearLayout newSeedLayout() {
-        LinearLayout linearLayout = new LinearLayout(this);
+        LinearLayout linearLayout = new LinearLayout(context);
         linearLayout.setOrientation(LinearLayout.VERTICAL);
-        linearLayout.setPadding(8,16,8,8);
-        linearLayout.addView(new TextView(this));
-        linearLayout.addView(new EditText(this));
-        linearLayout.addView(new TextView(this));
-        linearLayout.addView(new EditText(this));
-        linearLayout.addView(new TextView(this));
-        linearLayout.addView(new EditText(this));
+        linearLayout.setPadding(8, 16, 8, 8);
+        linearLayout.addView(new TextView(context));
+        linearLayout.addView(new EditText(context));
+        linearLayout.addView(new TextView(context));
+        linearLayout.addView(new EditText(context));
+        linearLayout.addView(new TextView(context));
+        linearLayout.addView(new EditText(context));
         ((TextView) linearLayout.getChildAt(0)).setText("Row/Column(s)");
         ((TextView) linearLayout.getChildAt(2)).setText("Date");
         ((TextView) linearLayout.getChildAt(4)).setText("Seed Name");
         return linearLayout;
     }
+
     public LinearLayout newLinearLayout() {
-        LinearLayout linearLayout = new LinearLayout(this);
+        LinearLayout linearLayout = new LinearLayout(context);
         linearLayout.setOrientation(LinearLayout.VERTICAL);
-        linearLayout.setPadding(8,16,8,8);
-        linearLayout.addView(new TextView(this));
-        linearLayout.addView(new EditText(this));
-        linearLayout.addView(new TextView(this));
-        linearLayout.addView(new EditText(this));
-        linearLayout.addView(new TextView(this));
-        linearLayout.addView(new EditText(this));
+        linearLayout.setPadding(8, 16, 8, 8);
+        linearLayout.addView(new TextView(context));
+        linearLayout.addView(new EditText(context));
+        linearLayout.addView(new TextView(context));
+        linearLayout.addView(new EditText(context));
+        linearLayout.addView(new TextView(context));
+        linearLayout.addView(new EditText(context));
         ((TextView) linearLayout.getChildAt(0)).setText("Row/Column(s)");
         ((TextView) linearLayout.getChildAt(2)).setText("Date");
         ((TextView) linearLayout.getChildAt(4)).setText("Event");
         return linearLayout;
     }
 
+    // not used old code
+    public AlertDialog.Builder newLinearDialog() {
+        AlertDialog.Builder builder = new AlertDialog.Builder(context);
+        builder.setTitle("Checkbox Dialog");
+        LinearLayout linearLayout = newLinearLayout();
+        builder.setView(linearLayout);
+        builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                // Get the selected items
+                Log.d(this.getClass().getSimpleName(), "*&* onclick for the dialog");
+            }
+        });
+        return builder;
+    }
+
+    // not used old code
     public ListView newListView() {
-        ListView listView = new ListView(this);
-        ArrayAdapter<String> adapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_multiple_choice);
+        ListView listView = new ListView(context);
+        ArrayAdapter<String> adapter = new ArrayAdapter<>(context, android.R.layout.simple_list_item_multiple_choice);
         listView.setAdapter(adapter);
         listView.setChoiceMode(ListView.CHOICE_MODE_MULTIPLE);
 
@@ -165,8 +156,9 @@ public class EditTrayActivity extends AppCompatActivity
         return listView;
     }
 
+    // not used old code
     public AlertDialog.Builder newListDialog() {
-        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        AlertDialog.Builder builder = new AlertDialog.Builder(context);
         builder.setTitle("Register Event");
         ListView listView = newListView();
         builder.setView(listView);
@@ -188,19 +180,99 @@ public class EditTrayActivity extends AppCompatActivity
         });
         return builder;
     }
+}
 
-    public AlertDialog.Builder newLinearDialog() {
-        AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        builder.setTitle("Checkbox Dialog");
-        LinearLayout linearLayout = newLinearLayout();
-        builder.setView(linearLayout);
-        builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-                // Get the selected items
-                Log.d(this.getClass().getSimpleName(), "*&* onclick for the dialog");
-            }
-        });
-        return builder;
+/**
+ * EditTray shows the picture, the tray name, the width, height, seeds button,
+ * register button, and a summary which the idea maybe to use emoji seeds
+ * (We need a query too, or a text summary)
+ */
+public class EditTrayActivity extends AppCompatActivity
+        implements View.OnLongClickListener, ActivityResultCallback<ActivityResult>
+{
+    /**
+     * EditTray Members
+     */
+    public static String ARG_TRAY_NAME = TrayFragment.ARG_TRAY_NAME;
+    public static String ARG_TRAY_IMAGE_NAME = TrayFragment.ARG_TRAY_IMAGE_NAME;
+    public Register register = null;
+    public Seed seed = null;
+    private ActivityResultLauncher<Intent> launcher; // onLongClick
+    private ImageView tray; // onLongClick result
+    public IBackend backend = IBackend.getInstance();
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        Intent intent = getIntent();
+        setContentView(R.layout.activity_edit_tray);
+        onCreateArgs(savedInstanceState);
+        onCreateSetupHandlers(savedInstanceState);
+    }
+    // mine
+    protected void onCreateArgs(Bundle savedInstanceState) {
+        Bundle bundle = getIntent().getExtras();
+        if (bundle != null) {
+            String trayName = bundle.getString(ARG_TRAY_NAME);
+            String trayImageName = bundle.getString(ARG_TRAY_IMAGE_NAME);
+            backend.getTray(trayName);
+            backend.getImage(trayImageName);
+            Log.d(this.getClass().getSimpleName(), "*&* EditTrayActivity for " + trayName + " and " + trayImageName);
+        } else {
+            Log.d(this.getClass().getSimpleName(), "*&* we got no args EditTrayActivity");
+        }
+    }
+    // mine
+    protected void onCreateSetupHandlers(Bundle savedInstanceState) {
+        // Long click for the image
+        register = new Register(this);
+        seed = new Seed(this);
+        launcher = registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), this);
+        tray = findViewById(R.id.aetTrayImage);
+        tray.setOnLongClickListener(this);
+        tray.setImageBitmap(backend.trayImage);
+
+        // Tray name
+        EditText trayName = findViewById(R.id.aetTrayName);
+        trayName.setText(backend.trayName);
+
+    }
+
+    @Override
+    public boolean onLongClick(View v) {
+        Log.d(this.getClass().getSimpleName(), "*&* Yay! on long click");
+        Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+        launcher.launch(intent);
+        return true;
+    }
+
+    @Override
+    public void onActivityResult(ActivityResult result) {
+        Log.d(this.getClass().getSimpleName(), "*&* Yay! on long click result");
+        if (result.getResultCode() == Activity.RESULT_OK) {
+            // The image capture was successful. You can access the captured image here.
+            Intent data = result.getData();
+            Bundle extras = data.getExtras();
+            Bitmap imageBitmap = (Bitmap) extras.get("data");
+            // Do something with the imageBitmap, such as displaying it in an ImageView
+            tray.setImageBitmap(imageBitmap);
+            // TODO save to backend
+        }
+    }
+
+    /**
+     * Called when user clicks add seeds
+     * @param view
+     */
+    public void aetAddSeedsEvent(View view) {
+        seed.onClick(view);
+    }
+
+    /**
+     * Called when user clicks register event button
+     * @param view
+     */
+    public void aetRegisterEvent(View view) {
+        register.onClick(view);
     }
 }
