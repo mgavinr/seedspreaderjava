@@ -8,17 +8,17 @@ import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.app.Activity;
-import android.content.ActivityNotFoundException;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.os.Bundle;
 import android.provider.MediaStore;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.util.Log;
 import android.util.SparseBooleanArray;
 import android.view.View;
-import android.widget.Adapter;
 import android.widget.ArrayAdapter;
 import android.widget.EditText;
 import android.widget.ImageView;
@@ -27,6 +27,12 @@ import android.widget.ListView;
 import android.widget.TextView;
 
 import com.grogers.seedspreaderjava.R;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Hashtable;
+import java.util.List;
+import java.util.Map;
 
 class Register {
     Context context;
@@ -224,6 +230,10 @@ public class EditTrayActivity extends AppCompatActivity
     }
     // mine
     protected void onCreateSetupHandlers(Bundle savedInstanceState) {
+        List<String> doneList = Arrays.asList("name", "image", "cols", "rows", "contents");
+        LinearLayout main = findViewById(R.id.aetLinearLayoutEditTray);
+
+        // Change image pic
         // Long click for the image
         register = new Register(this);
         seed = new Seed(this);
@@ -232,10 +242,115 @@ public class EditTrayActivity extends AppCompatActivity
         tray.setOnLongClickListener(this);
         tray.setImageBitmap(backend.trayImage);
 
-        // Tray name
+        // Change tray name
         EditText trayName = findViewById(R.id.aetTrayName);
         trayName.setText(backend.trayName);
+        trayName.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) { }
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) { }
+            @Override
+            public void afterTextChanged(Editable s) {
+                // This method is called after the text has been changed.
+                Log.d(this.getClass().getSimpleName(), "*&* Tray Name Changed to:"+ s.toString());
+            }
+        });
 
+
+        // Change tray contents
+        EditText contents = findViewById(R.id.aetContentsEditTextML);
+        String contentsText = convertContents(contents);
+        contents.setText(contentsText);
+
+        // Change tray cols
+        EditText trayCols = findViewById(R.id.aetColsEdit); //width
+        EditText trayRows = findViewById(R.id.aetRowsEdit); //height
+        Integer cols = (Integer)backend.tray.get("cols");
+        Integer rows = (Integer)backend.tray.get("rows");
+        trayCols.setText(cols.toString());
+        trayRows.setText(rows.toString());
+
+        for(String key : backend.tray.keySet()) {
+            if (doneList.contains(key)) {
+                Log.d(this.getClass().getSimpleName(), "*&* no need to add ui for " + key);
+            } else {
+                Log.d(this.getClass().getSimpleName(), "*&* programmatically adding views for " + key);
+                TextView text = new TextView(this);
+                text.setText(key);
+                EditText editText = new EditText(this);
+                main.addView(text);
+                main.addView(editText);
+            }
+        }
+    }
+
+    String convertContents(View v) {
+        Map<String, Object> eventE = Map.ofEntries(
+            Map.entry("ddeath", "\u2620"),
+            Map.entry("sseedling", "\uD83C\uDF31"),
+            Map.entry("death", "💀"),
+            Map.entry("corn", "🌽"),
+            Map.entry("chili", "🌶"),
+            Map.entry("pineapple", "🍍"),
+            Map.entry("strawberry", "🍓"),
+            Map.entry("carrot", "🥕"),
+            Map.entry("planted2", "🌰"),
+            Map.entry("seedling", "🌱"),
+            Map.entry("top", "🔝"),
+            Map.entry("transplant", "🏘"),
+            Map.entry("bone", "🦴"),
+            Map.entry("seedling2", "🌾"),
+            Map.entry("cherry", "🍒"),
+            Map.entry("planted", "🥔"),
+            Map.entry("nut", "🥜"),
+            Map.entry("broccoli", "🥦"),
+            Map.entry("cucumber", "🥬"),
+            Map.entry("eggplant", "🍆"),
+            Map.entry("avocado", "🥑"),
+            Map.entry("coconut", "🥥"),
+            Map.entry("tomato", "🍅"),
+            Map.entry("kiwi", "🥝"),
+            Map.entry("pear2", "🥭"),
+            Map.entry("redApple", "🍎"),
+            Map.entry("greenApple", "🍏"),
+            Map.entry("pear", "🍐"),
+            Map.entry("mandarin", "🍑"),
+            Map.entry("lemon", "🍋"),
+            Map.entry("orange", "🍊"),
+            Map.entry("melon", "🍉"),
+            Map.entry("tennis", "🍈"),
+            Map.entry("grape", "🍇"),
+            Map.entry("banana", "🍌"),
+            Map.entry("blank", "🌑"),
+            Map.entry("spare", "🌑"),
+            Map.entry("spare2", "x")
+        );
+        String multiLineE= "";
+        Integer cols = (Integer)backend.tray.get("cols");
+        Integer rows = (Integer)backend.tray.get("rows");
+
+        int max = cols * rows;
+        int row = 0;
+        int col = 0;
+        Object contents = backend.tray.get("contents");
+        ArrayList<?> trayContents = (ArrayList<?>) contents;
+        for (Object potContent : trayContents) {
+            col++;
+            ArrayList<?> potContentList = (ArrayList<?>) potContent;
+            Map<String, Object> potEvent = null;
+            for (Object content: potContentList) {
+                potEvent = (Map<String, Object>) content;
+                Log.d(this.getClass().getSimpleName(), "*&* row="+row+" col="+ col + " pot="+ potEvent.toString());
+            }
+            multiLineE = multiLineE + eventE.get(potEvent.get("event"));
+        }
+        while(col < max) {
+            multiLineE = multiLineE + eventE.get("spare");
+            col++;
+        }
+        Log.d(this.getClass().getSimpleName(), "*&* " + multiLineE);
+        return multiLineE;
     }
 
     @Override

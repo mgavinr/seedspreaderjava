@@ -1,86 +1,99 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
         xmlns:app="http://schemas.android.com/apk/res-auto"
         xmlns:tools="http://schemas.android.com/tools"
-        android:id="@+id/linearLayoutEditTray"
+        android:id="@+id/aetScrollViewEditTray"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:orientation="vertical"
         android:padding="8dp">
 
-
-    <ImageView
-        android:id="@+id/aetTrayImage"
-        android:layout_width="wrap_content"
-        android:layout_height="208dp"
-        app:srcCompat="@drawable/tray1" />
-
-    <EditText
-        android:id="@+id/aetTrayName"
+    <LinearLayout
+        android:id="@+id/aetLinearLayoutEditTray"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:ems="10"
-        android:inputType="textPersonName"
-        android:onClick="aetEventTrayNameClick"
-        android:text="The Tray Name" />
+        android:orientation="vertical">
 
-    <TextView
-        android:id="@+id/aetCols"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="@string/aet_cols" />
+        <EditText
+            android:id="@+id/editTextTextMultiLine"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:ems="10"
+            android:gravity="start|top"
+            android:inputType="textMultiLine" />
 
-    <EditText
-        android:id="@+id/aetColsEdit"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:ems="10"
-        android:inputType="number"
-        android:text="10" />
+        <ImageView
+            android:id="@+id/aetTrayImage"
+            android:layout_width="wrap_content"
+            android:layout_height="208dp"
+            app:srcCompat="@drawable/tray1" />
 
-    <TextView
-        android:id="@+id/aetRows"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="@string/aet_rows" />
+        <EditText
+            android:id="@+id/aetTrayName"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:ems="10"
+            android:inputType="textPersonName"
+            android:onClick="aetEventTrayNameClick"
+            android:text="The Tray Name" />
 
-    <EditText
-        android:id="@+id/aetRowsEdit"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:ems="10"
-        android:inputType="number"
-        android:text="10" />
+        <TextView
+            android:id="@+id/aetCols"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/aet_cols" />
 
-    <Button
-        android:id="@+id/aetSeedsButton"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:onClick="aetAddSeedsEvent"
-        android:text="@string/aet_add_seeds" />
+        <EditText
+            android:id="@+id/aetColsEdit"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:ems="10"
+            android:inputType="number"
+            android:text="10" />
 
-    <Button
-        android:id="@+id/aetRegisterButton"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:onClick="aetRegisterEvent"
-        android:text="@string/aet_add_register" />
+        <TextView
+            android:id="@+id/aetRows"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/aet_rows" />
 
-    <TextView
-        android:id="@+id/aetSummaryText"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="@string/aet_summary" />
+        <EditText
+            android:id="@+id/aetRowsEdit"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:ems="10"
+            android:inputType="number"
+            android:text="10" />
 
-    <EditText
-        android:id="@+id/aetSummaryEdit"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:ems="10"
-        android:fontFamily="monospace"
-        android:gravity="start|top"
-        android:inputType="textMultiLine"
-        android:text="seedling \uD83C\uDF31 death \u2620"
-        android:textSize="12sp" />
+        <Button
+            android:id="@+id/aetSeedsButton"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:onClick="aetAddSeedsEvent"
+            android:text="@string/aet_add_seeds" />
 
-</LinearLayout>
+        <Button
+            android:id="@+id/aetRegisterButton"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:onClick="aetRegisterEvent"
+            android:text="@string/aet_add_register" />
+
+        <TextView
+            android:id="@+id/aetContentsText"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/aet_summary" />
+
+        <EditText
+            android:id="@+id/aetContentsEditTextML"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:ems="10"
+            android:fontFamily="monospace"
+            android:gravity="start|top"
+            android:inputType="textMultiLine"
+            android:text="seedling \uD83C\uDF31 death \u2620"
+            android:textSize="12sp" />
+    </LinearLayout>
+</ScrollView>
