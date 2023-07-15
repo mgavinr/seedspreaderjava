@@ -62,39 +62,44 @@ public class SampleData {
         String sampleTrays = "---\n" +
                 "name: Veg Tray\n" +
                 "description: A tray holding veg\n" +
+                "image: tray1.jpg\n" +
                 "rows: 10\n" +
                 "cols: 10\n" +
-                "image: tray1.jpg\n" +
                 "year:\n" +
                 "- 2023\n" +
-                "contents:\n" +
-                "- - name: Sample Tomato\n" +
-                "    date: 2023\n" +
-                "    event: planted\n" +
-                "  - name: Sample Tomato\n" +
-                "    date: 2023\n" +
-                "    event: seedling\n" +
-                "- - name: Sample Tomato\n" +
-                "    date: 2023\n" +
-                "    event: planted\n" +
+                "contents1:\n" +
+                "- name: Sample Tomato\n" +
+                "  date: 2023\n" +
+                "  event: planted\n" +
+                "- name: Sample Tomato\n" +
+                "  date: 2023\n" +
+                "  event: seedling\n" +
+                "- name: Sample Tomato\n" +
+                "  date: 2023\n" +
+                "  event: planted\n" +
+                "contents2: null\n" +
+                "contents3:\n" +
+                "- name: Sample Tomato\n" +
+                "  date: 2023\n" +
+                "  event: planted\n" +
                 "---\n" +
                 "name: Fruit Tray\n" +
                 "description: A tray holding fruits\n" +
-                "rows: 10\n" +
-                "cols: 10\n" +
                 "image: tray2.jpg\n" +
                 "year:\n" +
                 "- 2023\n" +
-                "contents:\n" +
-                "- - name: Sample Chili Pepper\n" +
-                "    date: 2023\n" +
-                "    event: planted\n" +
-                "  - name: Sample Chili Pepper\n" +
-                "    date: 2023\n" +
-                "    event: seedling\n" +
-                "- - name: Sample Chili Pepper\n" +
-                "    date: 2023\n" +
-                "    event: planted\n";
+                "rows: 10\n" +
+                "cols: 10\n" +
+                "contents1:\n" +
+                "- name: Sample Chili Pepper\n" +
+                "  date: 2023\n" +
+                "  event: planted\n" +
+                "- name: Sample Chili Pepper\n" +
+                "  date: 2023\n" +
+                "  event: seedling\n" +
+                "- name: Sample Chili Pepper\n" +
+                "  date: 2023\n" +
+                "  event: planted\n";
         try {
             String filePath = frontend.filesPublic + "/" + "trays.yaml";
             BufferedWriter writer = new BufferedWriter(new FileWriter(filePath));

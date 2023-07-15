@@ -100,6 +100,12 @@ public class SeedSpreader {
         readImages();
     }
 
+    public void update() {
+        writeDataForSeeds();
+        writeDataForTrays();
+        writeImages();
+    }
+
     /**
      * Public Fields
      */
@@ -262,5 +268,4 @@ public class SeedSpreader {
             writer.writeYamlFile(filePath, o);
         }
     }
-
 }

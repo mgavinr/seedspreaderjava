@@ -12,5 +12,5 @@
     <string name="aet_add_seeds">Add seeds</string>
     <string name="aet_add_register">Register Event (Seedlings, Death, Transplant..)</string>
     <string name="aet_register_dialog">Register Event</string>
-    <string name="aet_summary">Summary</string>
+    <string name="aet_contents">Contents</string>
 </resources>
