@@ -4,6 +4,8 @@ import androidx.activity.result.ActivityResult;
 import androidx.activity.result.ActivityResultCallback;
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 
@@ -36,9 +38,12 @@ import com.grogers.seedspreaderjava.R;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 class LanguageProcessor {
     static Map<String, String> iconList = Map.ofEntries(
@@ -58,6 +63,7 @@ class LanguageProcessor {
             Map.entry("seedling2", "🌾"),
             Map.entry("cherry", "🍒"),
             Map.entry("planted", "🥔"),
+            Map.entry("newplanted", "🥔"),
             Map.entry("nut", "🥜"),
             Map.entry("broccoli", "🥦"),
             Map.entry("cucumber", "🥬"),
@@ -89,13 +95,15 @@ class LanguageProcessor {
 
     static ArrayList<Integer> getRowCol(String rowcol, int maxRow, int maxCol) {
         // This tries to be a natural language interpreter for row col coords
-        // it accepts rX as the row, and then cols follow, rX on it's own
-        // means nothing, it's all about the cols, but you can say all, or * for all colls
-        // All english starts counting at 1 .. r1 is row 0 ..  col 1to3 is col 0,1,2
+        // it accepts rX as the row, and then cols follow, rX on it's own means nothing,
+        // it's all about the cols, but you can say all, or * for all colls
+        // row 1 is the first row
+        // col 1 is the first col
         ArrayList<Integer> result = new ArrayList<Integer>();
         rowcol = rowcol.replace(" to", "to");
         rowcol = rowcol.replace("to ", "to");
-        int currentRow = 0;
+        int currentRow = 1;
+        result.add(-currentRow);
         for (String part : rowcol.split(" ")) {
             Log.d(LanguageProcessor.class.getSimpleName(), "*&* Language=[" + part + "] for row " + currentRow);
             try {
@@ -104,27 +112,29 @@ class LanguageProcessor {
                     Log.d(LanguageProcessor.class.getSimpleName(), "*&* parserow=>" + part);
                     String row = part.replace("r", "");
                     currentRow = Integer.parseInt(row);
-                    currentRow -= 1;
-                    if (currentRow < 0) {
-                        currentRow = 0;
-                    }
+                    if (currentRow < 1) currentRow = 1;
+                    result.add(-currentRow);
                     Log.d(LanguageProcessor.class.getSimpleName(), "*&* parserow<=" + part);
                 } else {
                     Log.d(LanguageProcessor.class.getSimpleName(), "*&* parsecol=>" + part);
                     if ((part.equals("*")) || (part.equals("all"))) {
                         for (int i = 0; i < maxCol; ++i) {
-                            result.add((currentRow*maxCol) + i);
+                            result.add(i);
                         }
                     } else if (part.contains("to")) {
                         String[] twoParts = part.split("to");
-                        Integer start = Integer.parseInt(twoParts[0].trim()); --start;
-                        Integer end = Integer.parseInt(twoParts[1].trim()); --end;
+                        Integer start = Integer.parseInt(twoParts[0].trim()) - 1;
+                        if (start < 0) start = 0;
+                        Integer end = Integer.parseInt(twoParts[1].trim()) - 1;
+                        if (end < 0) end = 0;
                         for (int i = start; i <= end; ++i) {
-                            result.add((currentRow*maxCol) + i);
+                            result.add(i);
                         }
                     } else {
                         for (String col : part.split(" ")) {
-                            result.add((currentRow*maxCol) + Integer.parseInt(col) - 1);
+                            Integer start = Integer.parseInt(col.trim()) - 1;
+                            if (start < 0) start = 0;
+                            result.add(start);
                         }
                     }
                     Log.d(LanguageProcessor.class.getSimpleName(), "*&* parsecol<=" + part);
@@ -133,7 +143,6 @@ class LanguageProcessor {
                 Log.d(LanguageProcessor.class.getSimpleName(), "*&* parse error " + e.toString());
             }
         }
-        Collections.sort(result);
         Log.d(LanguageProcessor.class.getSimpleName(), "*&* The rowCol interpreter has taken input [" + rowcol + "] to mean [" + result.toString() + "]");
         return result;
     }
@@ -147,7 +156,7 @@ class LanguageProcessor {
         List<String> keys = new ArrayList<String>(backend.tray.keySet());
         Collections.sort(keys);
         for(String key : keys) {
-            if (key.contains("contents")) {
+            if (key.contains("content_")) {
                 if(!start) multiLineE = multiLineE + "\n";
                 start = false;
                 ArrayList<?> rowContent = (ArrayList<?>) backend.tray.get(key);
@@ -327,8 +336,46 @@ class Seed {
                     Log.d(this.getClass().getSimpleName(), "*&* Seed() no seed for " + seedName);
                 } else {
                     Log.d(this.getClass().getSimpleName(), "*&* Seed() yes we have already seed for " + seedName);
-                    LanguageProcessor.getRowCol(rowcols, context.rows, context.cols);
-
+                    ArrayList<Integer> userRowCol = LanguageProcessor.getRowCol(rowcols, context.rows, context.cols);
+                    ArrayList< HashMap<String, Object> > rowContent = null;
+                    Map<String, Object> colContent = null;
+                    for(Integer rowOrColValue : userRowCol) {
+                        // negative values are rows
+                        if (rowOrColValue < 0) {
+                            int origRowOrColValue = -rowOrColValue;
+                            rowOrColValue = -rowOrColValue;
+                            //Object what = backend.tray.get("content_"+rowOrColValue.toString());
+                            //if (what != null) {
+                            //    Log.d(this.getClass().getSimpleName(), "*&* Seed() OK: got this: " + what.toString());
+                            //}
+                            rowContent = (ArrayList< HashMap<String, Object> >) backend.tray.get("content_"+rowOrColValue.toString());
+                            while((rowContent == null) && (rowOrColValue > 0)) {
+                                Log.d(this.getClass().getSimpleName(), "*&* Seed() OK: adding new row to yaml: content_"+ rowOrColValue);
+                                rowContent = new ArrayList< HashMap<String, Object> >();
+                                backend.tray.put("content_"+rowOrColValue, rowContent);
+                                rowOrColValue--;
+                                rowContent = (ArrayList< HashMap<String, Object> >) backend.tray.get("content_"+rowOrColValue.toString());
+                            }
+                            rowOrColValue = origRowOrColValue;
+                            rowContent = (ArrayList< HashMap<String, Object> >) backend.tray.get("content_"+rowOrColValue.toString());
+                        }
+                        // positive values are cols
+                        else {
+                            // size 2, means index 0, 1  .. so we use <=
+                            while(rowContent.size() <= rowOrColValue) {
+                                Log.d(this.getClass().getSimpleName(), "*&* Seed() OK: adding new col " + rowOrColValue);
+                                rowContent.add(new HashMap<String, Object>());
+                            }
+                            Log.d(this.getClass().getSimpleName(), "*&* Seed() OK: setting col" + rowOrColValue);
+                            colContent = rowContent.get(rowOrColValue);
+                            if(colContent == null) colContent = new HashMap<String, Object>();
+                            colContent.put("name", seedName);
+                            colContent.put("date", date);
+                            colContent.put("event", "newplanted");
+                        }
+                    }
+                    backend.seedSpreader.update();
+                    context.onCreateSetupValues(null);
                 }
             }
         });
@@ -466,6 +513,7 @@ public class EditTrayActivity extends AppCompatActivity
         setContentView(R.layout.activity_edit_tray);
         onCreateArgs(savedInstanceState);
         onCreateSetupHandlers(savedInstanceState);
+        onCreateSetupValues(savedInstanceState);
     }
     // mine
     protected void onCreateArgs(Bundle savedInstanceState) {
@@ -482,9 +530,6 @@ public class EditTrayActivity extends AppCompatActivity
     }
     // mine
     protected void onCreateSetupHandlers(Bundle savedInstanceState) {
-        List<String> doneList = Arrays.asList("name", "image", "cols", "rows");
-        LinearLayout main = findViewById(R.id.aetLinearLayoutEditTray);
-
         // Change image pic
         // Long click for the image
         register = new Register(this);
@@ -493,6 +538,10 @@ public class EditTrayActivity extends AppCompatActivity
         tray = findViewById(R.id.aetTrayImage);
         tray.setOnLongClickListener(this);
         tray.setImageBitmap(backend.trayImage);
+    }
+    protected void onCreateSetupValues(Bundle savedInstanceState) {
+        List<String> doneList = Arrays.asList("name", "image", "cols", "rows");
+        LinearLayout main = findViewById(R.id.aetLinearLayoutEditTray);
 
         // Change tray name
         EditText trayName = findViewById(R.id.aetTrayName);
@@ -517,7 +566,7 @@ public class EditTrayActivity extends AppCompatActivity
             if (doneList.contains(key)) {
                 Log.d(this.getClass().getSimpleName(), "*&* no need to add ui for " + key);
             } else {
-                if (!key.contains("contents")) {
+                if (!key.contains("content_")) {
                     Log.d(this.getClass().getSimpleName(), "*&* programmatically adding views for " + key);
                     TextView text = new TextView(this);
                     text.setText(key);

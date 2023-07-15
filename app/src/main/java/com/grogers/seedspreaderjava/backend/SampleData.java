@@ -67,7 +67,7 @@ public class SampleData {
                 "cols: 10\n" +
                 "year:\n" +
                 "- 2023\n" +
-                "contents1:\n" +
+                "content_1:\n" +
                 "- name: Sample Tomato\n" +
                 "  date: 2023\n" +
                 "  event: planted\n" +
@@ -77,8 +77,8 @@ public class SampleData {
                 "- name: Sample Tomato\n" +
                 "  date: 2023\n" +
                 "  event: planted\n" +
-                "contents2: null\n" +
-                "contents3:\n" +
+                "content_2: null\n" +
+                "content_3:\n" +
                 "- name: Sample Tomato\n" +
                 "  date: 2023\n" +
                 "  event: planted\n" +
@@ -90,7 +90,7 @@ public class SampleData {
                 "- 2023\n" +
                 "rows: 10\n" +
                 "cols: 10\n" +
-                "contents1:\n" +
+                "content_1:\n" +
                 "- name: Sample Chili Pepper\n" +
                 "  date: 2023\n" +
                 "  event: planted\n" +

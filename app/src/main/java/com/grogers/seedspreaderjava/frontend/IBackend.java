@@ -48,7 +48,7 @@ public class IBackend {
         return trayImage;
     }
 
-    public Bitmap getSImage(String imageName) {
+    public Bitmap getSeedImage(String imageName) {
         this.seedImageName = imageName;
         seedImage = seedSpreader.images.get(imageName);
         if (seedImage == null) {
@@ -57,7 +57,7 @@ public class IBackend {
         }
         return seedImage;
     }
-    public Bitmap getSBImage(String imageName) {
+    public Bitmap getSeedBackImage(String imageName) {
         this.seedImageNameBack = imageName.replace(".", "_back.");
         seedImageBack = seedSpreader.images.get(imageName);
         if (seedImageBack == null) {
@@ -85,6 +85,10 @@ public class IBackend {
             Log.d(this.getClass().getSimpleName(), "*&* Seeds are: " + seedSpreader.seeds.keySet().toString());
         }
         return seed;
+    }
+
+    void save() {
+        seedSpreader.update();
     }
 
     String[] getSeeds() {
