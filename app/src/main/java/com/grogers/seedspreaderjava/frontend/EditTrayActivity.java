@@ -27,6 +27,7 @@ import android.util.SparseBooleanArray;
 import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.AutoCompleteTextView;
+import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
@@ -330,6 +331,44 @@ public class EditTrayActivity extends AppCompatActivity
         trayCols.setText(cols.toString());
         trayRows.setText(rows.toString());
 
+        // Create: Seed list
+        HashMap<String, String> seedList = new HashMap<>();
+        List<String> keys = new ArrayList<String>(backend.tray.keySet());
+        Collections.sort(keys);
+        int row = 0;
+        for(String key : keys) {
+            if (key.contains("content_")) {
+                ++row;
+                ArrayList<?> rowContent = (ArrayList<?>) backend.tray.get(key);
+                if (rowContent != null) {
+                    int col = 0;
+                    for (Object colContent : rowContent) {
+                        ++col;
+                        Map<String, Object> colmap = (Map<String, Object>) colContent;
+                        String seedName = (String)colmap.get("name");
+                        String event = (String)colmap.get("event");
+                        String date = (String)colmap.get("date");
+                        String seedInfo = "["+ row +","+col+"] "+ event + " on " + date + ".\n";
+                        if (seedList.containsKey(seedName)) {
+                            String existingSeedInfo = seedList.get(seedName);
+                            seedList.put(seedName, existingSeedInfo+seedInfo);
+                        } else {
+                            seedList.put(seedName, seedInfo);
+                        }
+                    }
+                }
+            }
+        }
+        for(String key: seedList.keySet()) {
+            TextView text = new TextView(this);
+            Button button = new Button(this);
+            button.setText(key);
+            text.setText(seedList.get(key));
+            main.addView(button);
+            main.addView(text);
+        }
+
+        // Create: Seed list
         if(create) {
             for (String key : backend.tray.keySet()) {
                 if (doneList.contains(key)) {
@@ -346,6 +385,25 @@ public class EditTrayActivity extends AppCompatActivity
                 }
             }
         }
+
+        // Create: User defined key values
+        if(create) {
+            for (String key : backend.tray.keySet()) {
+                if (doneList.contains(key)) {
+                    Log.d(this.getClass().getSimpleName(), "*&* no need to add ui for " + key);
+                } else {
+                    if (!key.contains("content_")) {
+                        Log.d(this.getClass().getSimpleName(), "*&* programmatically adding views for " + key);
+                        TextView text = new TextView(this);
+                        text.setText(key);
+                        EditText editText = new EditText(this);
+                        main.addView(text);
+                        main.addView(editText);
+                    }
+                }
+            }
+        }
+        // TODO Create: Button to add User defined key values
     }
 
     @Override

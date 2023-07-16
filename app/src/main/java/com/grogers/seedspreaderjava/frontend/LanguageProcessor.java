@@ -150,6 +150,5 @@ public class LanguageProcessor {
         Log.d(LanguageProcessor.class.getSimpleName(), "*&* " + multiLineE);
         return multiLineE;
     }
-
 }
 

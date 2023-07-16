@@ -87,5 +87,6 @@
             android:inputType="textMultiLine"
             android:text="seedling \uD83C\uDF31 death \u2620"
             android:textSize="12sp" />
+
     </LinearLayout>
 </ScrollView>
