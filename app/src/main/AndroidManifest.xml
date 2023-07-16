@@ -30,7 +30,8 @@
             android:label="Settings" />
         <activity
             android:name=".frontend.EditTrayActivity"
-            android:exported="true">
+            android:exported="true"
+            android:label="Seed Spreader > Edit Tray">
             <intent-filter>
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>

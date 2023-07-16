@@ -34,6 +34,7 @@ import android.widget.ListView;
 import android.widget.TextView;
 
 import com.grogers.seedspreaderjava.R;
+import com.grogers.seedspreaderjava.frontend.LanguageProcessor;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -45,165 +46,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-class LanguageProcessor {
-    static Map<String, String> iconList = Map.ofEntries(
-            Map.entry("ddeath", "\u2620"),
-            Map.entry("sseedling", "\uD83C\uDF31"),
-            Map.entry("death", "💀"),
-            Map.entry("corn", "🌽"),
-            Map.entry("chili", "🌶"),
-            Map.entry("pineapple", "🍍"),
-            Map.entry("strawberry", "🍓"),
-            Map.entry("carrot", "🥕"),
-            Map.entry("planted2", "🌰"),
-            Map.entry("seedling", "🌱"),
-            Map.entry("top", "🔝"),
-            Map.entry("transplant", "🏘"),
-            Map.entry("bone", "🦴"),
-            Map.entry("seedling2", "🌾"),
-            Map.entry("cherry", "🍒"),
-            Map.entry("planted", "🥔"),
-            Map.entry("newplanted", "🥔"),
-            Map.entry("nut", "🥜"),
-            Map.entry("broccoli", "🥦"),
-            Map.entry("cucumber", "🥬"),
-            Map.entry("eggplant", "🍆"),
-            Map.entry("avocado", "🥑"),
-            Map.entry("coconut", "🥥"),
-            Map.entry("tomato", "🍅"),
-            Map.entry("kiwi", "🥝"),
-            Map.entry("pear2", "🥭"),
-            Map.entry("redApple", "🍎"),
-            Map.entry("greenApple", "🍏"),
-            Map.entry("pear", "🍐"),
-            Map.entry("mandarin", "🍑"),
-            Map.entry("lemon", "🍋"),
-            Map.entry("orange", "🍊"),
-            Map.entry("melon", "🍉"),
-            Map.entry("tennis", "🍈"),
-            Map.entry("grape", "🍇"),
-            Map.entry("banana", "🍌"),
-            Map.entry("blank", "🌑"),
-            Map.entry("spare", "🌑"),
-            Map.entry("spare2", "x")
-    );
 
-    static public String getDate() {
-        LocalDate currentDate = LocalDate.now();
-        return currentDate.toString();
-    }
-
-    static ArrayList<Integer> getRowCol(String rowcol, int maxRow, int maxCol) {
-        // This tries to be a natural language interpreter for row col coords
-        // it accepts rX as the row, and then cols follow, rX on it's own means nothing,
-        // it's all about the cols, but you can say all, or * for all colls
-        // row 1 is the first row
-        // col 1 is the first col
-        ArrayList<Integer> result = new ArrayList<Integer>();
-        rowcol = rowcol.replace(" to", "to");
-        rowcol = rowcol.replace("to ", "to");
-        int currentRow = 1;
-        result.add(-currentRow);
-        for (String part : rowcol.split(" ")) {
-            Log.d(LanguageProcessor.class.getSimpleName(), "*&* Language=[" + part + "] for row " + currentRow);
-            try {
-                if (part.contains("r")) {
-                    // parse a row number
-                    Log.d(LanguageProcessor.class.getSimpleName(), "*&* parserow=>" + part);
-                    String row = part.replace("r", "");
-                    currentRow = Integer.parseInt(row);
-                    if (currentRow < 1) currentRow = 1;
-                    result.add(-currentRow);
-                    Log.d(LanguageProcessor.class.getSimpleName(), "*&* parserow<=" + part);
-                } else {
-                    Log.d(LanguageProcessor.class.getSimpleName(), "*&* parsecol=>" + part);
-                    if ((part.equals("*")) || (part.equals("all"))) {
-                        for (int i = 0; i < maxCol; ++i) {
-                            result.add(i);
-                        }
-                    } else if (part.contains("to")) {
-                        String[] twoParts = part.split("to");
-                        Integer start = Integer.parseInt(twoParts[0].trim()) - 1;
-                        if (start < 0) start = 0;
-                        Integer end = Integer.parseInt(twoParts[1].trim()) - 1;
-                        if (end < 0) end = 0;
-                        for (int i = start; i <= end; ++i) {
-                            result.add(i);
-                        }
-                    } else {
-                        for (String col : part.split(" ")) {
-                            Integer start = Integer.parseInt(col.trim()) - 1;
-                            if (start < 0) start = 0;
-                            result.add(start);
-                        }
-                    }
-                    Log.d(LanguageProcessor.class.getSimpleName(), "*&* parsecol<=" + part);
-                }
-            } catch (Exception e) {
-                Log.d(LanguageProcessor.class.getSimpleName(), "*&* parse error " + e.toString());
-            }
-        }
-        Log.d(LanguageProcessor.class.getSimpleName(), "*&* The rowCol interpreter has taken input [" + rowcol + "] to mean [" + result.toString() + "]");
-        return result;
-    }
-
-    static String getContents(IBackend backend) {
-        String multiLineE= "";
-        boolean start = true;
-
-        String icon = null;
-        String iconSpare = iconList.get("spare");
-        List<String> keys = new ArrayList<String>(backend.tray.keySet());
-        Collections.sort(keys);
-        for(String key : keys) {
-            if (key.contains("content_")) {
-                if(!start) multiLineE = multiLineE + "\n";
-                start = false;
-                ArrayList<?> rowContent = (ArrayList<?>) backend.tray.get(key);
-                if (rowContent != null) {
-                    for (Object colContent : rowContent) {
-                        Map<String, Object> col = (Map<String, Object>) colContent;
-                        icon = iconList.get(col.get("event"));
-                        if (icon == null) {
-                            icon = iconSpare;
-                        }
-                        multiLineE = multiLineE + icon;
-                    }
-                }
-            }
-        }
-        Log.d(LanguageProcessor.class.getSimpleName(), "*&* " + multiLineE);
-        return multiLineE;
-    }
-
-}
-
-class WordFilter implements InputFilter {
-    private ArrayList<String> allowedWords;
-
-    public WordFilter(String[] allowedWords) {
-        this.allowedWords = new ArrayList<>(Arrays.asList(allowedWords));
-    }
-
-    @Override
-    public CharSequence filter(CharSequence source, int start, int end, Spanned dest, int dstart, int dend) {
-        StringBuilder filtered = new StringBuilder();
-        for (int i = start; i < end; i++) {
-            char character = source.charAt(i);
-            filtered.append(character);
-        }
-
-        String newWord = dest.subSequence(0, dstart) + filtered.toString() + dest.subSequence(dend, dest.length());
-        if (allowedWords.contains(newWord)) {
-            Log.d(this.getClass().getSimpleName(), "*&* The word entered is okay: "+ newWord);
-            return null;
-        }
-        Log.d(this.getClass().getSimpleName(), "*&* The word entered is not okay: " + newWord);
-        return "";
-    }
-}
-
-// TODO if you change the coll size, you need to redo the events?
+/**
+ * TextListener
+ * - listens for changes to focus for alot of fields (we new this for each)
+ * - also listen to each text change in a field, but we don't use that, i forget it
+ */
 class TextListener implements TextWatcher, View.OnFocusChangeListener {
     EditText view = null;
     String key = null;
@@ -218,6 +66,23 @@ class TextListener implements TextWatcher, View.OnFocusChangeListener {
     public TextListener(View v) {
         this.view = (EditText) v;
     }
+
+    public void save(String value) {
+        if (key == null) return;
+        if (view == null) return;
+        if (view.getInputType() == InputType.TYPE_CLASS_NUMBER) {
+            try {
+                Integer ivalue = Integer.parseInt(value);
+                backend.tray.put(key, ivalue);
+            } catch (Exception e) {
+                Log.d(this.getClass().getSimpleName(), "*&* listener save():" + e.toString());
+            }
+        } else {
+            backend.tray.put(key, value);   // row colls descritpion etc.
+            if (key == "name") backend.updateTrayName(value);
+        }
+    }
+
     @Override
     public void beforeTextChanged(CharSequence s, int start, int count, int after) {
     }
@@ -230,6 +95,9 @@ class TextListener implements TextWatcher, View.OnFocusChangeListener {
     public void onFocusChange(View fview, boolean hasFocus) {
         // hmm we don't need view as it is arg too but...
         Log.d(this.getClass().getSimpleName(), "*&* " + key + " focus changed to:" + view.getText());
+        if(hasFocus == false) {
+            this.save(view.getText().toString());
+        }
     }
 
     @Override
@@ -237,25 +105,19 @@ class TextListener implements TextWatcher, View.OnFocusChangeListener {
         // This method is called after the text has been changed.
         String value = s.toString();
         Log.d(this.getClass().getSimpleName(), "*&* " + key + " watcher changed to:" + s.toString());
-        if (key == null) return;
-        if (view == null) return;
-        if (view.getInputType() == InputType.TYPE_CLASS_NUMBER) {
-            try {
-                Integer ivalue = Integer.parseInt(value);
-                backend.tray.put(key, ivalue);
-            } catch (Exception e) {
-                Log.d(this.getClass().getSimpleName(), "*&* a:" + e.toString());
-            }
-        } else {
-            backend.tray.put(key, value);
-        }
+        this.save(value);
     }
 }
 
+/**
+ * Register
+ * - this is a class that popups up a dialog, and then updates the backend and frontent
+ */
 class Register {
-    Context context;
+    EditTrayActivity context;
     LinearLayout linearLayout = null;
-    public Register(Context context) {
+    public IBackend backend = IBackend.getInstance();
+    public Register(EditTrayActivity context) {
         this.context = context;
     }
     public void onClick(View view) {
@@ -270,10 +132,11 @@ class Register {
                 // Get the selected items
                 Log.d(this.getClass().getSimpleName(), "*&* OK event");
                 String rowcols = ((EditText) linearLayout.getChildAt(1)).getText().toString();
-
                 String date = ((EditText) linearLayout.getChildAt(3)).getText().toString();
-                String event = ((EditText) linearLayout.getChildAt(5)).getText().toString();
-                Log.d(this.getClass().getSimpleName(), "*&* OK said " + rowcols + ", " + date + ", " + event);
+                String eventName = ((EditText) linearLayout.getChildAt(5)).getText().toString();
+                Log.d(this.getClass().getSimpleName(), "*&* OK said " + rowcols + ", " + date + ", " + eventName);
+                backend.updateEvent(rowcols, date, null, eventName);
+                context.onCreateSetupValues(null, false);
             }
         });
         builder.create();
@@ -312,6 +175,10 @@ class Register {
         return linearLayout;
     }
 }
+/**
+ * Seed
+ * - this is a class that popups up a dialog, and then updates the backend and frontent
+ */
 class Seed {
     EditTrayActivity context;
     public IBackend backend = IBackend.getInstance();
@@ -336,46 +203,8 @@ class Seed {
                     Log.d(this.getClass().getSimpleName(), "*&* Seed() no seed for " + seedName);
                 } else {
                     Log.d(this.getClass().getSimpleName(), "*&* Seed() yes we have already seed for " + seedName);
-                    ArrayList<Integer> userRowCol = LanguageProcessor.getRowCol(rowcols, context.rows, context.cols);
-                    ArrayList< HashMap<String, Object> > rowContent = null;
-                    Map<String, Object> colContent = null;
-                    for(Integer rowOrColValue : userRowCol) {
-                        // negative values are rows
-                        if (rowOrColValue < 0) {
-                            int origRowOrColValue = -rowOrColValue;
-                            rowOrColValue = -rowOrColValue;
-                            //Object what = backend.tray.get("content_"+rowOrColValue.toString());
-                            //if (what != null) {
-                            //    Log.d(this.getClass().getSimpleName(), "*&* Seed() OK: got this: " + what.toString());
-                            //}
-                            rowContent = (ArrayList< HashMap<String, Object> >) backend.tray.get("content_"+rowOrColValue.toString());
-                            while((rowContent == null) && (rowOrColValue > 0)) {
-                                Log.d(this.getClass().getSimpleName(), "*&* Seed() OK: adding new row to yaml: content_"+ rowOrColValue);
-                                rowContent = new ArrayList< HashMap<String, Object> >();
-                                backend.tray.put("content_"+rowOrColValue, rowContent);
-                                rowOrColValue--;
-                                rowContent = (ArrayList< HashMap<String, Object> >) backend.tray.get("content_"+rowOrColValue.toString());
-                            }
-                            rowOrColValue = origRowOrColValue;
-                            rowContent = (ArrayList< HashMap<String, Object> >) backend.tray.get("content_"+rowOrColValue.toString());
-                        }
-                        // positive values are cols
-                        else {
-                            // size 2, means index 0, 1  .. so we use <=
-                            while(rowContent.size() <= rowOrColValue) {
-                                Log.d(this.getClass().getSimpleName(), "*&* Seed() OK: adding new col " + rowOrColValue);
-                                rowContent.add(new HashMap<String, Object>());
-                            }
-                            Log.d(this.getClass().getSimpleName(), "*&* Seed() OK: setting col" + rowOrColValue);
-                            colContent = rowContent.get(rowOrColValue);
-                            if(colContent == null) colContent = new HashMap<String, Object>();
-                            colContent.put("name", seedName);
-                            colContent.put("date", date);
-                            colContent.put("event", "newplanted");
-                        }
-                    }
-                    backend.seedSpreader.update();
-                    context.onCreateSetupValues(null);
+                    backend.updateEvent(rowcols, date, seedName, "newplanted");
+                    context.onCreateSetupValues(null, false);
                 }
             }
         });
@@ -409,111 +238,40 @@ class Seed {
         return linearLayout;
     }
 
-    public LinearLayout newLinearLayout() {
-        LinearLayout linearLayout = new LinearLayout(context);
-        linearLayout.setOrientation(LinearLayout.VERTICAL);
-        linearLayout.setPadding(8, 16, 8, 8);
-        linearLayout.addView(new TextView(context));
-        linearLayout.addView(new EditText(context));
-        linearLayout.addView(new TextView(context));
-        linearLayout.addView(new EditText(context));
-        linearLayout.addView(new TextView(context));
-        linearLayout.addView(new EditText(context));
-        ((TextView) linearLayout.getChildAt(0)).setText("Row/Column(s)");
-        ((TextView) linearLayout.getChildAt(2)).setText("Date");
-        ((TextView) linearLayout.getChildAt(4)).setText("Event");
-        return linearLayout;
-    }
-
-    // not used old code
-    public AlertDialog.Builder newLinearDialog() {
-        AlertDialog.Builder builder = new AlertDialog.Builder(context);
-        builder.setTitle("Checkbox Dialog");
-        LinearLayout linearLayout = newLinearLayout();
-        builder.setView(linearLayout);
-        builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-                // Get the selected items
-                Log.d(this.getClass().getSimpleName(), "*&* onclick for the dialog");
-            }
-        });
-        return builder;
-    }
-
-    // not used old code
-    public ListView newListView() {
-        ListView listView = new ListView(context);
-        ArrayAdapter<String> adapter = new ArrayAdapter<>(context, android.R.layout.simple_list_item_multiple_choice);
-        listView.setAdapter(adapter);
-        listView.setChoiceMode(ListView.CHOICE_MODE_MULTIPLE);
-
-        // Add items to the adapter
-        adapter.add("Item 1");
-        adapter.add("Item 2");
-        adapter.add("Item 3");
-        return listView;
-    }
-
-    // not used old code
-    public AlertDialog.Builder newListDialog() {
-        AlertDialog.Builder builder = new AlertDialog.Builder(context);
-        builder.setTitle("Register Event");
-        ListView listView = newListView();
-        builder.setView(listView);
-        builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-                // Get the selected items
-                SparseBooleanArray checkedItems = listView.getCheckedItemPositions();
-                for (int i = 0; i < checkedItems.size(); i++) {
-                    int position = checkedItems.keyAt(i);
-                    if (checkedItems.valueAt(i)) {
-                        String selected = (String) listView.getAdapter().getItem(position);
-                        Log.d(this.getClass().getSimpleName(), "*&* dialog selected " + selected);
-                        // Perform actions with the selected items
-                        // ...
-                    }
-                }
-            }
-        });
-        return builder;
-    }
 }
 
 /**
- * EditTray shows the picture, the tray name, the width, height, seeds button,
- * register button, and a summary which the idea maybe to use emoji seeds
- * (We need a query too, or a text summary)
+ * EditTray
+ * - shows the picture, the tray name, the rows and cols
+ * - register button
+ * - seed button
  */
 public class EditTrayActivity extends AppCompatActivity
-        implements View.OnLongClickListener, ActivityResultCallback<ActivityResult>
+        implements View.OnLongClickListener, View.OnClickListener, ActivityResultCallback<ActivityResult>
 {
     /**
-     * EditTray Members
+     * Members : for passed in bundle
      */
     public static String ARG_TRAY_NAME = TrayFragment.ARG_TRAY_NAME;
     public static String ARG_TRAY_IMAGE_NAME = TrayFragment.ARG_TRAY_IMAGE_NAME;
-    public Register register = null;
-    public Seed seed = null;
-    private ActivityResultLauncher<Intent> launcher; // onLongClick
-    private ImageView tray; // onLongClick result
-    public IBackend backend = IBackend.getInstance();
 
     /**
-     * Computed EditTray Members
+     * Members : members
      */
-    public Integer cols = 0;
-    public Integer rows = 0;
+    public IBackend backend = IBackend.getInstance();
+    public Register register = null;
+    public Seed seed = null;
+    //
+    private ActivityResultLauncher<Intent> launcher; // onLongClick
+    private ImageView trayImageView; // used in local onLongClick result()
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        Intent intent = getIntent();
         setContentView(R.layout.activity_edit_tray);
         onCreateArgs(savedInstanceState);
         onCreateSetupHandlers(savedInstanceState);
-        onCreateSetupValues(savedInstanceState);
+        onCreateSetupValues(savedInstanceState, true);
     }
     // mine
     protected void onCreateArgs(Bundle savedInstanceState) {
@@ -530,24 +288,34 @@ public class EditTrayActivity extends AppCompatActivity
     }
     // mine
     protected void onCreateSetupHandlers(Bundle savedInstanceState) {
-        // Change image pic
-        // Long click for the image
+        // onLongClick - aetTrayImage
+        // allow the user to change the tray image
         register = new Register(this);
         seed = new Seed(this);
         launcher = registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), this);
-        tray = findViewById(R.id.aetTrayImage);
-        tray.setOnLongClickListener(this);
-        tray.setImageBitmap(backend.trayImage);
+        trayImageView = findViewById(R.id.aetTrayImage);
+        trayImageView.setOnLongClickListener(this); // onLongClick .. we only have one
+        trayImageView.setImageBitmap(backend.trayImage);
+        trayImageView.setOnClickListener(this); // onClick()
+
+        // onEditTextFocusChange - multiple
+        // allow the user to change the contents of all fields
+        EditText editText = findViewById(R.id.aetTrayName);
+        //trayName.addTextChangedListener(new TextListener("name", trayName));
+        editText.setOnFocusChangeListener(new TextListener("name", editText));
+        editText = findViewById(R.id.aetColsEdit); //width
+        editText.setOnFocusChangeListener(new TextListener("cols", editText));
+        editText = findViewById(R.id.aetRowsEdit); //width
+        editText.setOnFocusChangeListener(new TextListener("rows", editText));
+        // TODO add the other user custom fields with now Ids
     }
-    protected void onCreateSetupValues(Bundle savedInstanceState) {
+    protected void onCreateSetupValues(Bundle savedInstanceState, Boolean create) {
         List<String> doneList = Arrays.asList("name", "image", "cols", "rows");
         LinearLayout main = findViewById(R.id.aetLinearLayoutEditTray);
 
         // Change tray name
         EditText trayName = findViewById(R.id.aetTrayName);
         trayName.setText(backend.trayName);
-        //trayName.addTextChangedListener(new TextListener("name", trayName));
-        trayName.setOnFocusChangeListener(new TextListener("name", trayName));
 
         // Change tray contents
         EditText contents = findViewById(R.id.aetContentsEditTextML);
@@ -557,22 +325,24 @@ public class EditTrayActivity extends AppCompatActivity
         // Change tray cols
         EditText trayCols = findViewById(R.id.aetColsEdit); //width
         EditText trayRows = findViewById(R.id.aetRowsEdit); //height
-        cols = (Integer)backend.tray.get("cols");
-        rows = (Integer)backend.tray.get("rows");
+        Integer cols = (Integer)backend.tray.get("cols");
+        Integer rows = (Integer)backend.tray.get("rows");
         trayCols.setText(cols.toString());
         trayRows.setText(rows.toString());
 
-        for(String key : backend.tray.keySet()) {
-            if (doneList.contains(key)) {
-                Log.d(this.getClass().getSimpleName(), "*&* no need to add ui for " + key);
-            } else {
-                if (!key.contains("content_")) {
-                    Log.d(this.getClass().getSimpleName(), "*&* programmatically adding views for " + key);
-                    TextView text = new TextView(this);
-                    text.setText(key);
-                    EditText editText = new EditText(this);
-                    main.addView(text);
-                    main.addView(editText);
+        if(create) {
+            for (String key : backend.tray.keySet()) {
+                if (doneList.contains(key)) {
+                    Log.d(this.getClass().getSimpleName(), "*&* no need to add ui for " + key);
+                } else {
+                    if (!key.contains("content_")) {
+                        Log.d(this.getClass().getSimpleName(), "*&* programmatically adding views for " + key);
+                        TextView text = new TextView(this);
+                        text.setText(key);
+                        EditText editText = new EditText(this);
+                        main.addView(text);
+                        main.addView(editText);
+                    }
                 }
             }
         }
@@ -594,9 +364,8 @@ public class EditTrayActivity extends AppCompatActivity
             Intent data = result.getData();
             Bundle extras = data.getExtras();
             Bitmap imageBitmap = (Bitmap) extras.get("data");
-            // Do something with the imageBitmap, such as displaying it in an ImageView
-            tray.setImageBitmap(imageBitmap);
-            // TODO save to backend
+            // TODO Do something with the imageBitmap, such as displaying it in an ImageView
+            trayImageView.setImageBitmap(imageBitmap);
         }
     }
 
@@ -614,5 +383,19 @@ public class EditTrayActivity extends AppCompatActivity
      */
     public void aetRegisterEvent(View view) {
         register.onClick(view);
+    }
+
+    @Override
+    public void onBackPressed() {
+        backend.seedSpreader.update();
+        super.onBackPressed();
+    }
+
+    @Override
+    public void onClick(View v) {
+        // TODO add a red box, to mean modified not saved, green to mean saved
+        // TODO add a back arrow to the left, that is the background property of image view
+        backend.seedSpreader.update();
+        finish();
     }
 }

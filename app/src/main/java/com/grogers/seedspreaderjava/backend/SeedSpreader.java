@@ -1,29 +1,22 @@
 package com.grogers.seedspreaderjava.backend;
-import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.os.Environment;
 import android.util.Log;
-import android.widget.ImageView;
 
-import com.grogers.seedspreaderjava.R;
-import com.grogers.seedspreaderjava.frontend.SeedApplication;
-import com.grogers.seedspreaderjava.backend.SampleData;
+import com.grogers.seedspreaderjava.frontend.LanguageProcessor;
 
 import org.yaml.snakeyaml.DumperOptions;
 import org.yaml.snakeyaml.Yaml;
 
-import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.util.HashMap;
+import java.util.ArrayList;
 import java.util.Hashtable;
 import java.util.Iterator;
-import java.util.List;
 import java.util.Map;
 
 class YamlReader {
@@ -60,7 +53,7 @@ class YamlReader {
 
 class YamlWriter {
     public boolean append = true; // truncate is false, otherwise
-    public void writeYamlFile(String filePath, Map<String, Object> data) {
+    public void writeYamlFile(String filePath, Object data) {
         DumperOptions options = new DumperOptions();
         options.setDefaultFlowStyle(DumperOptions.FlowStyle.BLOCK); // Optional: Set the desired flow style
         options.setExplicitStart(true);
@@ -95,12 +88,16 @@ public class SeedSpreader {
     }
 
     public void start() {
+        readDataForSettings();
+        settingsYear = (Integer) settings.get("year");
+        Log.d(this.getClass().getSimpleName(), "*&*&* Settings for year:" + settingsYear.toString());
         readDataForSeeds();
         readDataForTrays();
         readImages();
     }
 
     public void update() {
+        writeDataForSettings();
         writeDataForSeeds();
         writeDataForTrays();
         writeImages();
@@ -114,8 +111,10 @@ public class SeedSpreader {
     /* table is thread safe HashMap is modern not thread safe */
     public Hashtable<String, Map<String, Object> > trays = new Hashtable<String, Map<String, Object> >();
     public Hashtable<String, Map<String, Object> > seeds = new Hashtable<String, Map<String, Object> >();
+    public Map<String, Object> settings = new Hashtable<String, Object>();
     public Hashtable<String, Bitmap> images = new Hashtable<String, Bitmap>();
     public boolean scale = true;
+    public Integer settingsYear = (Integer) LanguageProcessor.getYear();
 
     /**
      * Read seeds.yaml document and store in a Map name -> anything
@@ -150,6 +149,38 @@ public class SeedSpreader {
     }
 
     /**
+     * Read settings.yaml document and store in a Map name -> anything
+     */
+    void readDataForSettings() {
+        try {
+            YamlReader reader = new YamlReader();
+            String filePath = frontend.filesPublic + "/" + "settings.yaml";
+            Log.d(this.getClass().getSimpleName(), "*&*&* readDataForSettings(" + filePath + ")");
+            reader.readYamlFile(filePath, new YamlReader.Callback() {
+                @Override
+                public void onCallback(Map<String, Object> yamlData) {
+                    settings = yamlData;
+                }
+            });
+            Log.d(this.getClass().getSimpleName(), "*&*&* readDataForSettings done, read " + settings.size() + " settings from AndroidFS");
+        } catch (FileNotFoundException e) {
+            Log.d(this.getClass().getSimpleName(), "*&*&* readDataForSettings no settings.yaml file: " + e.toString());
+        } catch (Exception e) {
+            Log.d(this.getClass().getSimpleName(), "*&*&* readDataForSettings has an error with settings.yaml file: " + e.toString());
+        }
+        if(sampleData || settings.size() == 0) {
+            if (SampleData.settings == false) {
+                Log.d(this.getClass().getSimpleName(), "*&*&* readDataForSettings() use sample data");
+                SampleData.createSettings();
+                Log.d(this.getClass().getSimpleName(), "*&*&* readDataForSettings() re-reading from sample data");
+                readDataForSettings();
+            }
+        } else {
+            writeDataForSettings();
+        }
+    }
+
+    /**
      * Write seeds.yaml document (reopens file and appends, auto adds ---)
      */
     void writeDataForSeeds() {
@@ -161,6 +192,20 @@ public class SeedSpreader {
             writer.writeYamlFile(filePath, o);
         }
     }
+
+    /**
+     * Write settings.yaml document (reopens file and appends, auto adds ---)
+     */
+    void writeDataForSettings() {
+        YamlWriter writer = new YamlWriter();
+        String filePath = frontend.filesPublic + "/" + "settings.yaml";
+        for( String name : settings.keySet()) {
+            Log.d(this.getClass().getSimpleName(), "*&*&* writeDataForSettings(" + name + ", " + filePath + ")");
+            Object o = settings.get(name);
+            writer.writeYamlFile(filePath, o);
+        }
+    }
+
 
     /**
      * Read all images from fileystem (/storage/emulated/0/Android/data/com.grogers.seedspreaderjava/files/Pictures/*)
@@ -230,7 +275,7 @@ public class SeedSpreader {
     void readDataForTrays() {
         try {
             YamlReader reader = new YamlReader();
-            String filePath = frontend.filesPublic + "/" + "trays.yaml";
+            String filePath = frontend.filesPublic + "/" + settingsYear + "trays.yaml";
             Log.d(this.getClass().getSimpleName(), "*&*&* readDataForTrays(" + filePath + ")");
             reader.readYamlFile(filePath, new YamlReader.Callback() {
                 @Override
@@ -261,7 +306,7 @@ public class SeedSpreader {
      */
     void writeDataForTrays() {
         YamlWriter writer = new YamlWriter();
-        String filePath = frontend.filesPublic + "/" + "trays.yaml";
+        String filePath = frontend.filesPublic + "/" + settingsYear + "trays.yaml";
         for( String name : trays.keySet()) {
             Log.d(this.getClass().getSimpleName(), "*&*&* writeDataForTrays(" + name + ", " + filePath + ")");
             Map<String, Object> o = trays.get(name);

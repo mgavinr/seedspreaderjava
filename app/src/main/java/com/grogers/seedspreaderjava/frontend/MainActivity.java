@@ -41,10 +41,12 @@ public class MainActivity extends AppCompatActivity {
         Log.d(this.getClass().getSimpleName(), "*&* /////////////////////////////////////// MainActivity onCreate()");
         Log.d(this.getClass().getSimpleName(), "*&* This is a log file");
         backend = IBackend.getInstance();
-        onCreateFill(savedInstanceState);
+        onCreateSetupValues(savedInstanceState);
     }
-    protected void onCreateFill(Bundle savedInstanceState) {
+
+    protected void onCreateSetupValues(Bundle savedInstanceState) {
         LinearLayout main = (LinearLayout) findViewById(R.id.linearLayoutMain);
+        LinearLayout frag = (LinearLayout) findViewById(R.id.linearLayoutFrag);
         LocalDateTime currentDateTime = LocalDateTime.now();
 
         /* Fill in the message of the day */
@@ -54,6 +56,7 @@ public class MainActivity extends AppCompatActivity {
 
         /* Fill in the fragments */
         // notes: https://stackoverflow.com/questions/17261633/multiple-fragments-in-a-vertical-linearlayout
+        frag.removeAllViews();
         FragmentManager fm = getSupportFragmentManager();
         FragmentTransaction ft = fm.beginTransaction();
         Log.d(this.getClass().getSimpleName(), "*&* Adding " + backend.getTrays().size());
@@ -76,5 +79,18 @@ public class MainActivity extends AppCompatActivity {
     public void clickNewTray(View view) {
         Log.d(this.getClass().getSimpleName(), "*&* clickNewTray()");
         this.startActivity(new Intent(this, EditTrayActivity.class));
+    }
+    /*
+    @Override
+    public void onBackPressed() {
+        Log.d(this.getClass().getSimpleName(), "*&* onBackPressed for main()");
+    }
+     */
+
+    @Override
+    public void onResume() {
+        Log.d(this.getClass().getSimpleName(), "*&* onResume for main()");
+        onCreateSetupValues(null);
+        super.onResume();
     }
 }

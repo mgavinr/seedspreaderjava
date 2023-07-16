@@ -3,6 +3,8 @@ package com.grogers.seedspreaderjava.backend;
 import android.graphics.Bitmap;
 import android.util.Log;
 
+import com.grogers.seedspreaderjava.frontend.LanguageProcessor;
+
 import java.io.BufferedWriter;
 import java.io.FileOutputStream;
 import java.io.FileWriter;
@@ -14,6 +16,7 @@ public class SampleData {
     static public boolean seeds = false;
     static public boolean trays = false;
     static public boolean images = false;
+    static public boolean settings = false;
 
     // maybe call flush before close
     static void createImages() {
@@ -38,17 +41,32 @@ public class SampleData {
         String sample = "---\n" +
                 "image: sample_chili.jpg\n" +
                 "year:\n" +
-                "- 2023\n" +
+                "- " + LanguageProcessor.getYear() + "\n" +
                 "name: Sample Chili Pepper\n" +
                 "description: A sample chili pepper\n" +
                 "---\n" +
                 "image: sample_tomato.jpg\n" +
                 "year:\n" +
-                "- 2023\n" +
+                "- " + LanguageProcessor.getYear() + "\n" +
                 "name: Sample tomato\n" +
                 "description: A sample tomato\n";
         try {
             String filePath = frontend.filesPublic + "/" + "seeds.yaml";
+            BufferedWriter writer = new BufferedWriter(new FileWriter(filePath));
+            writer.write(sample);
+            writer.close();
+        } catch (IOException e) {
+            Log.e(SampleData.class.getSimpleName(), "*&*&* Could not write sample data: " + e);
+        }
+    }
+
+    static void createSettings() {
+        settings = true;
+        String sample = "---\n" +
+                "name: default\n" +
+                "year: " + LanguageProcessor.getYear() + "\n";
+        try {
+            String filePath = frontend.filesPublic + "/" + "settings.yaml";
             BufferedWriter writer = new BufferedWriter(new FileWriter(filePath));
             writer.write(sample);
             writer.close();
@@ -66,42 +84,42 @@ public class SampleData {
                 "rows: 10\n" +
                 "cols: 10\n" +
                 "year:\n" +
-                "- 2023\n" +
+                "- " + LanguageProcessor.getYear() + "\n" +
                 "content_1:\n" +
                 "- name: Sample Tomato\n" +
-                "  date: 2023\n" +
+                "  date: '" + LanguageProcessor.getDate(5) + "'\n" +
                 "  event: planted\n" +
                 "- name: Sample Tomato\n" +
-                "  date: 2023\n" +
+                "  date: '" + LanguageProcessor.getDate(4) + "'\n" +
                 "  event: seedling\n" +
                 "- name: Sample Tomato\n" +
-                "  date: 2023\n" +
+                "  date: '" + LanguageProcessor.getDate(3) + "'\n" +
                 "  event: planted\n" +
                 "content_2: null\n" +
                 "content_3:\n" +
                 "- name: Sample Tomato\n" +
-                "  date: 2023\n" +
+                "  date: '" + LanguageProcessor.getDate(2) + "'\n" +
                 "  event: planted\n" +
                 "---\n" +
                 "name: Fruit Tray\n" +
                 "description: A tray holding fruits\n" +
                 "image: tray2.jpg\n" +
                 "year:\n" +
-                "- 2023\n" +
+                "- " + LanguageProcessor.getYear() + "\n" +
                 "rows: 10\n" +
                 "cols: 10\n" +
                 "content_1:\n" +
                 "- name: Sample Chili Pepper\n" +
-                "  date: 2023\n" +
+                "  date: '" + LanguageProcessor.getDate(4) + "'\n" +
                 "  event: planted\n" +
                 "- name: Sample Chili Pepper\n" +
-                "  date: 2023\n" +
+                "  date: '" + LanguageProcessor.getDate(3) + "'\n" +
                 "  event: seedling\n" +
                 "- name: Sample Chili Pepper\n" +
-                "  date: 2023\n" +
+                "  date: '" + LanguageProcessor.getDate(2) + "'\n" +
                 "  event: planted\n";
         try {
-            String filePath = frontend.filesPublic + "/" + "trays.yaml";
+            String filePath = frontend.filesPublic + "/" + LanguageProcessor.getYear() + "trays.yaml";
             BufferedWriter writer = new BufferedWriter(new FileWriter(filePath));
             writer.write(sampleTrays);
             writer.close();
