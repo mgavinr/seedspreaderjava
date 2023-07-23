@@ -96,11 +96,19 @@ public class SeedSpreader {
         readImages();
     }
 
-    public void update() {
-        writeDataForSettings();
-        writeDataForSeeds();
-        writeDataForTrays();
-        writeImages();
+    public void update(String what) {
+        if (what == null) {
+            writeDataForSettings();
+            writeDataForSeeds();
+            writeDataForTrays();
+            writeImages();
+        } else if (what == "images") {
+            writeImages();
+        } else if (what == "not_images") {
+            writeDataForSettings();
+            writeDataForSeeds();
+            writeDataForTrays();
+        }
     }
 
     /**

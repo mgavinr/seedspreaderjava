@@ -108,7 +108,7 @@ public class TrayFragment extends Fragment {
         Button name = (Button) view.findViewById(R.id.ftTrayNameButton);
         name.setText(this.trayName);
         //
-        Bitmap bitmap = backend.getImage(this.trayImageName);
+        Bitmap bitmap = backend.Tray.getImage(this.trayImageName);
         if (bitmap != null) {
             ImageView image = (ImageView) view.findViewById(R.id.ftPicture);
             image.setImageBitmap(bitmap);

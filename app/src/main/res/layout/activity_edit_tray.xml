@@ -88,5 +88,11 @@
             android:text="seedling \uD83C\uDF31 death \u2620"
             android:textSize="12sp" />
 
+        <LinearLayout
+            android:id="@+id/aetContentsViewLL"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="vertical"></LinearLayout>
+
     </LinearLayout>
 </ScrollView>

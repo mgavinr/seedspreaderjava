@@ -5,6 +5,7 @@ import android.util.Log;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -68,6 +69,13 @@ public class LanguageProcessor {
         return currentDate.getYear();
     }
 
+    static public String getImageName(String seedName, String suffix) {
+        String imageName = seedName.replace(" ", "_");
+        imageName = imageName.toLowerCase();
+        imageName = imageName.replace(".jpg", "");
+        return imageName + suffix + ".jpg";
+    }
+
     static ArrayList<Integer> getRowCol(String rowcol, int maxRow, int maxCol) {
         // This tries to be a natural language interpreter for row col coords
         // it accepts rX as the row, and then cols follow, rX on it's own means nothing,
@@ -79,18 +87,28 @@ public class LanguageProcessor {
         rowcol = rowcol.replace("to ", "to");
         int currentRow = 1;
         result.add(-currentRow);
+        boolean rowColValue = true;
         for (String part : rowcol.split(" ")) {
             Log.d(LanguageProcessor.class.getSimpleName(), "*&* Language=[" + part + "] for row " + currentRow);
             try {
                 if (part.contains("r")) {
-                    // parse a row number
-                    Log.d(LanguageProcessor.class.getSimpleName(), "*&* parserow=>" + part);
-                    String row = part.replace("r", "");
-                    currentRow = Integer.parseInt(row);
-                    if (currentRow < 1) currentRow = 1;
-                    result.add(-currentRow);
-                    Log.d(LanguageProcessor.class.getSimpleName(), "*&* parserow<=" + part);
+                    if (rowColValue == false) {
+                        // row on it's own means all columns
+                        for (int i = 0; i < maxCol; ++i) {
+                            result.add(i);
+                        }
+                    } else {
+                        // parse a row number
+                        Log.d(LanguageProcessor.class.getSimpleName(), "*&* parserow=>" + part);
+                        String row = part.replace("r", "");
+                        currentRow = Integer.parseInt(row);
+                        if (currentRow < 1) currentRow = 1;
+                        result.add(-currentRow);
+                        Log.d(LanguageProcessor.class.getSimpleName(), "*&* parserow<=" + part);
+                        rowColValue = false;
+                    }
                 } else {
+                    rowColValue = true;
                     Log.d(LanguageProcessor.class.getSimpleName(), "*&* parsecol=>" + part);
                     if ((part.equals("*")) || (part.equals("all"))) {
                         for (int i = 0; i < maxCol; ++i) {
@@ -116,6 +134,12 @@ public class LanguageProcessor {
                 }
             } catch (Exception e) {
                 Log.d(LanguageProcessor.class.getSimpleName(), "*&* parse error " + e.toString());
+            }
+        }
+        if (rowColValue == false) {
+            // row on it's own means all columns
+            for (int i = 0; i < maxCol; ++i) {
+                result.add(i);
             }
         }
         Log.d(LanguageProcessor.class.getSimpleName(), "*&* The rowCol interpreter has taken input [" + rowcol + "] to mean [" + result.toString() + "]");
@@ -149,6 +173,40 @@ public class LanguageProcessor {
         }
         Log.d(LanguageProcessor.class.getSimpleName(), "*&* " + multiLineE);
         return multiLineE;
+    }
+
+    // TODO we want to compress this, and put more human language in it
+    // suggestions, statistics, temperatures
+    static HashMap<String, String> getContentsPerSeed(IBackend backend) {
+        // Create: Seed list
+        HashMap<String, String> seedList = new HashMap<>();
+        List<String> keys = new ArrayList<String>(backend.tray.keySet());
+        Collections.sort(keys);
+        int row = 0;
+        for (String key : keys) {
+            if (key.contains("content_")) {
+                ++row;
+                ArrayList<?> rowContent = (ArrayList<?>) backend.tray.get(key);
+                if (rowContent != null) {
+                    int col = 0;
+                    for (Object colContent : rowContent) {
+                        ++col;
+                        Map<String, Object> colmap = (Map<String, Object>) colContent;
+                        String seedName = (String) colmap.get("name");
+                        String event = (String) colmap.get("event");
+                        String date = (String) colmap.get("date");
+                        String seedInfo = "[" + row + "," + col + "] " + event + " on " + date + ".\n";
+                        if (seedList.containsKey(seedName)) {
+                            String existingSeedInfo = seedList.get(seedName);
+                            seedList.put(seedName, existingSeedInfo + seedInfo);
+                        } else {
+                            seedList.put(seedName, seedInfo);
+                        }
+                    }
+                }
+            }
+        }
+        return seedList;
     }
 }
 

@@ -39,17 +39,20 @@ public class SampleData {
     static void createSeeds() {
         seeds = true;
         String sample = "---\n" +
-                "image: sample_chili.jpg\n" +
-                "year:\n" +
-                "- " + LanguageProcessor.getYear() + "\n" +
                 "name: Sample Chili Pepper\n" +
+                "image_front: sample_chili.jpg\n" +
+                "image_back: sample_chili_back.jpg\n" +
                 "description: A sample chili pepper\n" +
-                "---\n" +
-                "image: sample_tomato.jpg\n" +
                 "year:\n" +
                 "- " + LanguageProcessor.getYear() + "\n" +
+                "---\n" +
                 "name: Sample tomato\n" +
-                "description: A sample tomato\n";
+                "image_front: sample_tomato.jpg\n" +
+                "image_back: sample_tomato_back.jpg\n" +
+                "description: A sample tomato\n" +
+                "year:\n" +
+                "- " + LanguageProcessor.getYear() + "\n" +
+                "";
         try {
             String filePath = frontend.filesPublic + "/" + "seeds.yaml";
             BufferedWriter writer = new BufferedWriter(new FileWriter(filePath));

@@ -4,13 +4,10 @@ import androidx.activity.result.ActivityResult;
 import androidx.activity.result.ActivityResultCallback;
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.app.Activity;
-import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Bitmap;
@@ -18,12 +15,9 @@ import android.graphics.Typeface;
 import android.os.Bundle;
 import android.provider.MediaStore;
 import android.text.Editable;
-import android.text.InputFilter;
 import android.text.InputType;
-import android.text.Spanned;
 import android.text.TextWatcher;
 import android.util.Log;
-import android.util.SparseBooleanArray;
 import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.AutoCompleteTextView;
@@ -31,21 +25,16 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
-import android.widget.ListView;
 import android.widget.TextView;
 
 import com.grogers.seedspreaderjava.R;
-import com.grogers.seedspreaderjava.frontend.LanguageProcessor;
 
-import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 
 /**
@@ -80,7 +69,7 @@ class TextListener implements TextWatcher, View.OnFocusChangeListener {
             }
         } else {
             backend.tray.put(key, value);   // row colls descritpion etc.
-            if (key == "name") backend.updateTrayName(value);
+            if (key == "name") backend.Tray.updateTrayName(value);
         }
     }
 
@@ -111,17 +100,17 @@ class TextListener implements TextWatcher, View.OnFocusChangeListener {
 }
 
 /**
- * Register
+ * PlantRegister
  * - this is a class that popups up a dialog, and then updates the backend and frontent
  */
-class Register {
+class PlantRegister {
     EditTrayActivity context;
     LinearLayout linearLayout = null;
     public IBackend backend = IBackend.getInstance();
-    public Register(EditTrayActivity context) {
+    public PlantRegister(EditTrayActivity context) {
         this.context = context;
     }
-    public void onClick(View view) {
+    public void onClickR(View view) {
         Log.d(this.getClass().getSimpleName(), "*&* aetRegisterEvent()");
         AlertDialog.Builder builder = new AlertDialog.Builder(context);
         builder.setTitle("Register Event");
@@ -136,8 +125,14 @@ class Register {
                 String date = ((EditText) linearLayout.getChildAt(3)).getText().toString();
                 String eventName = ((EditText) linearLayout.getChildAt(5)).getText().toString();
                 Log.d(this.getClass().getSimpleName(), "*&* OK said " + rowcols + ", " + date + ", " + eventName);
-                backend.updateEvent(rowcols, date, null, eventName);
+                backend.Tray.updateEvent(rowcols, date, null, eventName);
                 context.onCreateSetupValues(null, false);
+            }
+        });
+        builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                dialog.dismiss();
             }
         });
         builder.create();
@@ -178,15 +173,38 @@ class Register {
 }
 /**
  * Seed
- * - this is a class that popups up a dialog, and then updates the backend and frontent
+ * - this is a class that popups up a dialog, and then updates the backend and frontend
  */
-class Seed {
+class PlantSeed {
     EditTrayActivity context;
+    boolean last = false;   // display empty dialog or the last one for when you made a spellng mistake
+    public ProcessValues processValues = null;
+    class ProcessValues {
+        public String rowCols;
+        public String date;
+        public String seedName;
+        public String event = "newplanted";
+        boolean processed = false;
+        public ProcessValues(String rc, String d, String n) {
+            rowCols = rc;
+            date = d;
+            seedName = n;
+        }
+
+        public void process() {
+            if(!processed) {
+                backend.Tray.updateEvent(rowCols, date, seedName, "newplanted");
+                context.onCreateSetupValues(null, false);
+                processed = true;
+            }
+        }
+    };
+
     public IBackend backend = IBackend.getInstance();
-    public Seed(EditTrayActivity context) {
+    public PlantSeed(EditTrayActivity context) {
         this.context = context;
     }
-    void onClick(View view) {
+    void onClickS(View view, boolean last) {
         Log.d(this.getClass().getSimpleName(), "*&* aetAddSeedsEvent()");
         AlertDialog.Builder builder = new AlertDialog.Builder(context);
         builder.setTitle("Planting Seeds");
@@ -196,17 +214,87 @@ class Seed {
             @Override
             public void onClick(DialogInterface dialog, int which) {
                 Log.d(this.getClass().getSimpleName(), "*&* OK seeds");
-                String rowcols = ((EditText) linearLayout.getChildAt(1)).getText().toString();
+                String rowCols = ((EditText) linearLayout.getChildAt(1)).getText().toString();
                 String date = ((EditText) linearLayout.getChildAt(3)).getText().toString();
                 String seedName = ((EditText) linearLayout.getChildAt(5)).getText().toString();
-                Log.d(this.getClass().getSimpleName(), "*&* OK said " + rowcols + ", " + date + ", " + seedName);
-                if (backend.getSeed(seedName) == null) {
+                Log.d(this.getClass().getSimpleName(), "*&* OK said " + rowCols + ", " + date + ", " + seedName);
+                processValues = new ProcessValues(rowCols, date, seedName);
+                if (backend.Seed.getSeed(seedName) == null) {
                     Log.d(this.getClass().getSimpleName(), "*&* Seed() no seed for " + seedName);
+                    dialog.dismiss();
+                    // TODO this is destroyed when exactly?
+                    // TODO there is alot of functions chasing functions here
+                    context.plantNewSeed = new PlantNewSeed(context, seedName);
                 } else {
                     Log.d(this.getClass().getSimpleName(), "*&* Seed() yes we have already seed for " + seedName);
-                    backend.updateEvent(rowcols, date, seedName, "newplanted");
-                    context.onCreateSetupValues(null, false);
+                    processValues.process();
                 }
+            }
+        });
+        builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                dialog.dismiss();
+            }
+        });
+        builder.create();
+        builder.show();
+    }
+
+    public LinearLayout newSeedLayout() {
+        LinearLayout linearLayout = new LinearLayout(context);
+        linearLayout.setOrientation(LinearLayout.VERTICAL);
+        linearLayout.setPadding(8, 16, 8, 8);
+        linearLayout.addView(new TextView(context));
+        linearLayout.addView(new EditText(context));
+        linearLayout.addView(new TextView(context));
+        linearLayout.addView(new EditText(context));
+        linearLayout.addView(new TextView(context));
+        linearLayout.addView(new AutoCompleteTextView(context));
+        linearLayout.addView(new TextView(context));
+        ((TextView) linearLayout.getChildAt(0)).setText("Row/Column(s)");
+        if(last) ((EditText) linearLayout.getChildAt(1)).setText(processValues.rowCols);
+        ((TextView) linearLayout.getChildAt(2)).setText("Date");
+        ((EditText) linearLayout.getChildAt(3)).setText(LanguageProcessor.getDate());
+        ((TextView) linearLayout.getChildAt(4)).setText("Seed Name");
+        if(last) ((EditText) linearLayout.getChildAt(5)).setText(processValues.seedName);
+
+        String[] suggestions = backend.Seed.getSeeds();
+        ArrayAdapter adapter = new ArrayAdapter<>(context, android.R.layout.simple_dropdown_item_1line, suggestions);
+        ((AutoCompleteTextView) linearLayout.getChildAt(5)).setThreshold(0); // always show suggestions
+        ((AutoCompleteTextView) linearLayout.getChildAt(5)).setAdapter(adapter);
+
+        ((TextView) linearLayout.getChildAt(6)).setText(String.join(",", suggestions));
+        ((TextView) linearLayout.getChildAt(6)).setTypeface(null, Typeface.ITALIC);
+        return linearLayout;
+    }
+
+}
+
+/**
+ * ViewSeed
+ * - this is a class that popups up a dialog, and then updates the backend and frontend
+ */
+class ViewSeed implements View.OnClickListener {
+    EditTrayActivity context;
+    public IBackend backend = IBackend.getInstance();
+    public ViewSeed(EditTrayActivity context) {
+        this.context = context;
+    }
+    @Override
+    public void onClick(View view) {
+        AlertDialog.Builder builder = new AlertDialog.Builder(context);
+        builder.setTitle("Seed");
+        LinearLayout linearLayout = newSeedLayout();
+        builder.setView(linearLayout);
+        builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+            }
+        });
+        builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
             }
         });
         builder.create();
@@ -229,7 +317,7 @@ class Seed {
         ((EditText) linearLayout.getChildAt(3)).setText(LanguageProcessor.getDate());
         ((TextView) linearLayout.getChildAt(4)).setText("Seed Name");
 
-        String[] suggestions = backend.getSeeds();
+        String[] suggestions = backend.Seed.getSeeds();
         ArrayAdapter adapter = new ArrayAdapter<>(context, android.R.layout.simple_dropdown_item_1line, suggestions);
         ((AutoCompleteTextView) linearLayout.getChildAt(5)).setThreshold(0); // always show suggestions
         ((AutoCompleteTextView) linearLayout.getChildAt(5)).setAdapter(adapter);
@@ -238,8 +326,111 @@ class Seed {
         ((TextView) linearLayout.getChildAt(6)).setTypeface(null, Typeface.ITALIC);
         return linearLayout;
     }
-
 }
+
+
+/**
+ * NewSeed
+ * - this is a class that popups up a dialog, and then updates the backend and frontend
+ */
+class PlantNewSeed
+{
+    EditTrayActivity context;
+    public IBackend backend = IBackend.getInstance();
+    public String title = "New Seed ";
+    public String seedName;
+    public PlantNewSeed.ProcessValues processValues = null;
+
+    class ProcessValues {
+        public String seedName;
+        public String description;
+        public String year;
+        boolean processed = false;
+
+        public ProcessValues(String seedName, String description, String year) {
+            this.seedName = seedName;
+            this.description = description;
+            this.year = year;
+        }
+
+        public void process() {
+            if (!processed) {
+                context.plantSeed.processValues.process();
+                processed = true;
+                // TODO could garbage collect
+            }
+        }
+    };
+
+    public PlantNewSeed(EditTrayActivity context, String seedName) {
+        this.context = context;
+        this.seedName = seedName;
+        this.onClickNS(null); // this is not started by a click
+    }
+
+    void onClickNS(View view) {
+        Log.d(this.getClass().getSimpleName(), "*&* Dialog for: " + title);
+        AlertDialog.Builder builder = new AlertDialog.Builder(context);
+        builder.setTitle(title + ": " + seedName);
+        LinearLayout linearLayout = dialogLayout();
+        builder.setView(linearLayout);
+        builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                if (processValues == null) {
+                    String description = ((EditText) linearLayout.getChildAt(3)).getText().toString();
+                    String year = ((EditText) linearLayout.getChildAt(5)).getText().toString();
+                    processValues = new PlantNewSeed.ProcessValues(seedName, description, year);
+                }
+                context.intentImage("seed");
+            }
+        });
+        builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                context.plantSeed.onClickS(null, true);
+            }
+        });
+        builder.create();
+        builder.show();
+    }
+
+    public LinearLayout dialogLayout() {
+        String message;
+        if(processValues == null)
+            message = "Please take a photo of the seed packet "
+                + seedName
+                + " (front and back).  There are "
+                + backend.Seed.getSeedImageCount(seedName)
+                + " images saved already.";
+        else
+            message = "Please take another photo of the seed packet "
+                + seedName
+                + " (back).  There are "
+                + backend.Seed.getSeedImageCount(seedName)
+                + " images saved already.";
+
+        LinearLayout linearLayout = new LinearLayout(context);
+        linearLayout.setOrientation(LinearLayout.VERTICAL);
+        linearLayout.setPadding(8, 16, 8, 8);
+        //  0,1
+        linearLayout.addView(new TextView(context));
+        ((TextView) linearLayout.getChildAt(0)).setText(message);
+        linearLayout.addView(new TextView(context));
+        // 2,3
+        linearLayout.addView(new TextView(context));
+        ((TextView) linearLayout.getChildAt(2)).setText("description:");
+        linearLayout.addView(new EditText(context));
+        if(processValues != null) ((EditText) linearLayout.getChildAt(3)).setText(processValues.description);
+        // 4,5
+        linearLayout.addView(new TextView(context));
+        ((TextView) linearLayout.getChildAt(4)).setText("purchase year:");
+        linearLayout.addView(new EditText(context));
+        if(processValues != null) ((EditText) linearLayout.getChildAt(5)).setText(processValues.year);
+        return linearLayout;
+    }
+}
+
 
 /**
  * EditTray
@@ -260,8 +451,11 @@ public class EditTrayActivity extends AppCompatActivity
      * Members : members
      */
     public IBackend backend = IBackend.getInstance();
-    public Register register = null;
-    public Seed seed = null;
+    public PlantRegister plantRegister = null;
+    public PlantSeed plantSeed = null;
+    public PlantNewSeed plantNewSeed = null;
+    public ViewSeed viewSeed = new ViewSeed(this);
+    public String intentName = "tray";
     //
     private ActivityResultLauncher<Intent> launcher; // onLongClick
     private ImageView trayImageView; // used in local onLongClick result()
@@ -280,8 +474,8 @@ public class EditTrayActivity extends AppCompatActivity
         if (bundle != null) {
             String trayName = bundle.getString(ARG_TRAY_NAME);
             String trayImageName = bundle.getString(ARG_TRAY_IMAGE_NAME);
-            backend.getTray(trayName);
-            backend.getImage(trayImageName);
+            backend.Tray.getTray(trayName);
+            backend.Tray.getImage(trayImageName);
             Log.d(this.getClass().getSimpleName(), "*&* EditTrayActivity for " + trayName + " and " + trayImageName);
         } else {
             Log.d(this.getClass().getSimpleName(), "*&* we got no args EditTrayActivity");
@@ -291,8 +485,8 @@ public class EditTrayActivity extends AppCompatActivity
     protected void onCreateSetupHandlers(Bundle savedInstanceState) {
         // onLongClick - aetTrayImage
         // allow the user to change the tray image
-        register = new Register(this);
-        seed = new Seed(this);
+        plantRegister = new PlantRegister(this);
+        plantSeed = new PlantSeed(this);
         launcher = registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), this);
         trayImageView = findViewById(R.id.aetTrayImage);
         trayImageView.setOnLongClickListener(this); // onLongClick .. we only have one
@@ -313,6 +507,7 @@ public class EditTrayActivity extends AppCompatActivity
     protected void onCreateSetupValues(Bundle savedInstanceState, Boolean create) {
         List<String> doneList = Arrays.asList("name", "image", "cols", "rows");
         LinearLayout main = findViewById(R.id.aetLinearLayoutEditTray);
+        LinearLayout mainc = findViewById(R.id.aetContentsViewLL);
 
         // Change tray name
         EditText trayName = findViewById(R.id.aetTrayName);
@@ -332,40 +527,16 @@ public class EditTrayActivity extends AppCompatActivity
         trayRows.setText(rows.toString());
 
         // Create: Seed list
-        HashMap<String, String> seedList = new HashMap<>();
-        List<String> keys = new ArrayList<String>(backend.tray.keySet());
-        Collections.sort(keys);
-        int row = 0;
-        for(String key : keys) {
-            if (key.contains("content_")) {
-                ++row;
-                ArrayList<?> rowContent = (ArrayList<?>) backend.tray.get(key);
-                if (rowContent != null) {
-                    int col = 0;
-                    for (Object colContent : rowContent) {
-                        ++col;
-                        Map<String, Object> colmap = (Map<String, Object>) colContent;
-                        String seedName = (String)colmap.get("name");
-                        String event = (String)colmap.get("event");
-                        String date = (String)colmap.get("date");
-                        String seedInfo = "["+ row +","+col+"] "+ event + " on " + date + ".\n";
-                        if (seedList.containsKey(seedName)) {
-                            String existingSeedInfo = seedList.get(seedName);
-                            seedList.put(seedName, existingSeedInfo+seedInfo);
-                        } else {
-                            seedList.put(seedName, seedInfo);
-                        }
-                    }
-                }
-            }
-        }
+        HashMap<String, String> seedList = LanguageProcessor.getContentsPerSeed(backend);
+        mainc.removeAllViews();
         for(String key: seedList.keySet()) {
             TextView text = new TextView(this);
             Button button = new Button(this);
             button.setText(key);
+            button.setOnClickListener(this.viewSeed);
             text.setText(seedList.get(key));
-            main.addView(button);
-            main.addView(text);
+            mainc.addView(button);
+            mainc.addView(text);
         }
 
         // Create: Seed list
@@ -409,9 +580,15 @@ public class EditTrayActivity extends AppCompatActivity
     @Override
     public boolean onLongClick(View v) {
         Log.d(this.getClass().getSimpleName(), "*&* Yay! on long click");
-        Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-        launcher.launch(intent);
+        intentImage("tray");
         return true;
+    }
+
+    public void intentImage(String name) {
+        this.intentName = name;
+        Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+        Log.d(this.getClass().getSimpleName(), "*&* fui:"+ intent.hashCode());
+        launcher.launch(intent);
     }
 
     @Override
@@ -420,10 +597,24 @@ public class EditTrayActivity extends AppCompatActivity
         if (result.getResultCode() == Activity.RESULT_OK) {
             // The image capture was successful. You can access the captured image here.
             Intent data = result.getData();
+            Log.d(this.getClass().getSimpleName(), "*&* fuo:"+ data.hashCode());
             Bundle extras = data.getExtras();
             Bitmap imageBitmap = (Bitmap) extras.get("data");
-            // TODO Do something with the imageBitmap, such as displaying it in an ImageView
-            trayImageView.setImageBitmap(imageBitmap);
+            if (intentName == "tray") {
+                Log.d(this.getClass().getSimpleName(), "*&* Yay! image for tray " + intentName);
+                trayImageView.setImageBitmap(backend.Tray.saveTrayImage(imageBitmap));
+            } else {
+                Log.d(this.getClass().getSimpleName(), "*&* Yay! image for " + intentName);
+                backend.Seed.addSeed(this.plantSeed.processValues.seedName, plantNewSeed.processValues.description, plantNewSeed.processValues.year);
+                backend.Seed.saveSeedImage(this.plantSeed.processValues.seedName, imageBitmap);
+                if(backend.Seed.getSeedImageCount(this.plantSeed.processValues.seedName) < 2) {
+                    plantNewSeed.onClickNS(null);
+                } else {
+                    // garbage collection
+                    plantNewSeed = null;
+                }
+                plantSeed.processValues.process();
+            }
         }
     }
 
@@ -432,7 +623,7 @@ public class EditTrayActivity extends AppCompatActivity
      * @param view
      */
     public void aetAddSeedsEvent(View view) {
-        seed.onClick(view);
+        plantSeed.onClickS(view, false);
     }
 
     /**
@@ -440,12 +631,12 @@ public class EditTrayActivity extends AppCompatActivity
      * @param view
      */
     public void aetRegisterEvent(View view) {
-        register.onClick(view);
+        plantRegister.onClickR(view);
     }
 
     @Override
     public void onBackPressed() {
-        backend.seedSpreader.update();
+        backend.seedSpreader.update(null);
         super.onBackPressed();
     }
 
@@ -453,7 +644,7 @@ public class EditTrayActivity extends AppCompatActivity
     public void onClick(View v) {
         // TODO add a red box, to mean modified not saved, green to mean saved
         // TODO add a back arrow to the left, that is the background property of image view
-        backend.seedSpreader.update();
+        backend.seedSpreader.update(null);
         finish();
     }
 }
