@@ -29,6 +29,7 @@ import android.widget.TextView;
 
 import com.grogers.seedspreaderjava.R;
 
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -277,53 +278,95 @@ class PlantSeed {
  */
 class ViewSeed implements View.OnClickListener {
     EditTrayActivity context;
+    String seedName;
+    boolean roundRobin = true;
+    Map<String, Object> seed = null;
     public IBackend backend = IBackend.getInstance();
     public ViewSeed(EditTrayActivity context) {
         this.context = context;
     }
     @Override
     public void onClick(View view) {
+        newDView(view, 0);
+    }
+    public void newDView(View view, Integer page) {
         AlertDialog.Builder builder = new AlertDialog.Builder(context);
-        builder.setTitle("Seed");
-        LinearLayout linearLayout = newSeedLayout();
-        builder.setView(linearLayout);
-        builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+        Button viewButton = (Button) view;
+        seedName = viewButton.getText().toString();
+        builder.setTitle("View seed: " + seedName);
+        try {
+            LinearLayout linearLayout = null;
+            Method method = this.getClass().getMethod("newLayoutPage" + page.toString());
+            linearLayout = (LinearLayout) method.invoke(this);
+            builder.setView(linearLayout);
+        } catch (Exception e){
+            Log.d(this.getClass().getSimpleName(), "*&* Error calling Pages: " + e.toString());
+            if(roundRobin) newDView(view, 0);  // round robin, or end
+            return;
+        }
+        builder.setPositiveButton("NEXT", new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
+                newDView(view, page+1);
             }
         });
         builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
+                dialog.dismiss();
             }
         });
         builder.create();
         builder.show();
     }
 
-    public LinearLayout newSeedLayout() {
+    public LinearLayout newLayoutPage0() {
+        // TODO what do you do if you want to change a seed name, you have to .. run sed?
         LinearLayout linearLayout = new LinearLayout(context);
         linearLayout.setOrientation(LinearLayout.VERTICAL);
         linearLayout.setPadding(8, 16, 8, 8);
-        linearLayout.addView(new TextView(context));
-        linearLayout.addView(new EditText(context));
-        linearLayout.addView(new TextView(context));
-        linearLayout.addView(new EditText(context));
-        linearLayout.addView(new TextView(context));
-        linearLayout.addView(new AutoCompleteTextView(context));
-        linearLayout.addView(new TextView(context));
-        ((TextView) linearLayout.getChildAt(0)).setText("Row/Column(s)");
-        ((TextView) linearLayout.getChildAt(2)).setText("Date");
-        ((EditText) linearLayout.getChildAt(3)).setText(LanguageProcessor.getDate());
-        ((TextView) linearLayout.getChildAt(4)).setText("Seed Name");
+        //
+        seed = backend.Seed.getSeed(seedName);
+        int index = 0;
+        for (String k : seed.keySet()) {
+            Object value = seed.get(k);
+            linearLayout.addView(new TextView(context));
+            linearLayout.addView(new EditText(context));
+            ((TextView) linearLayout.getChildAt(index)).setText(k);
+            ((EditText) linearLayout.getChildAt(index + 1)).setText(seed.get(k).toString());
+            if (value instanceof Integer) {
+                ((EditText) linearLayout.getChildAt(index + 1)).setInputType(InputType.TYPE_CLASS_NUMBER);
+            }
+            index += 2;
+        }
+        return linearLayout;
+    }
 
-        String[] suggestions = backend.Seed.getSeeds();
-        ArrayAdapter adapter = new ArrayAdapter<>(context, android.R.layout.simple_dropdown_item_1line, suggestions);
-        ((AutoCompleteTextView) linearLayout.getChildAt(5)).setThreshold(0); // always show suggestions
-        ((AutoCompleteTextView) linearLayout.getChildAt(5)).setAdapter(adapter);
+    public LinearLayout newLayoutPage1() {
+        // TODO what do you do if you want to change a seed name, you have to .. run sed?
+        LinearLayout linearLayout = new LinearLayout(context);
+        linearLayout.setOrientation(LinearLayout.VERTICAL);
+        linearLayout.setPadding(8, 16, 8, 8);
+        int index = 0;
+        linearLayout.addView(new ImageView(context));
+        ((ImageView) linearLayout.getChildAt(index)).setImageBitmap(
+                backend.Seed.getSeedFrontImage(
+                        seed.get("image_front").toString()));
+        //
+        return linearLayout;
+    }
 
-        ((TextView) linearLayout.getChildAt(6)).setText(String.join(",", suggestions));
-        ((TextView) linearLayout.getChildAt(6)).setTypeface(null, Typeface.ITALIC);
+    public LinearLayout newLayoutPage2() {
+        // TODO what do you do if you want to change a seed name, you have to .. run sed?
+        LinearLayout linearLayout = new LinearLayout(context);
+        linearLayout.setOrientation(LinearLayout.VERTICAL);
+        linearLayout.setPadding(8, 16, 8, 8);
+        int index = 0;
+        linearLayout.addView(new ImageView(context));
+        ((ImageView) linearLayout.getChildAt(index)).setImageBitmap(
+                backend.Seed.getSeedFrontImage(
+                        seed.get("image_back").toString()));
+        //
         return linearLayout;
     }
 }
@@ -537,24 +580,6 @@ public class EditTrayActivity extends AppCompatActivity
             text.setText(seedList.get(key));
             mainc.addView(button);
             mainc.addView(text);
-        }
-
-        // Create: Seed list
-        if(create) {
-            for (String key : backend.tray.keySet()) {
-                if (doneList.contains(key)) {
-                    Log.d(this.getClass().getSimpleName(), "*&* no need to add ui for " + key);
-                } else {
-                    if (!key.contains("content_")) {
-                        Log.d(this.getClass().getSimpleName(), "*&* programmatically adding views for " + key);
-                        TextView text = new TextView(this);
-                        text.setText(key);
-                        EditText editText = new EditText(this);
-                        main.addView(text);
-                        main.addView(editText);
-                    }
-                }
-            }
         }
 
         // Create: User defined key values
