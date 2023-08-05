@@ -48,6 +48,10 @@ public class IFrontend {
     public Bitmap getBitmap(String resource) {
         if (resource == "sample_chili")
             return BitmapFactory.decodeResource(context.getResources(), R.drawable.sample_chili);
+        else if (resource == "new_image")       // TODO, I know you are a programmer, but
+            // make sure you video this app for the records,
+            // the look and feel needs to be kept, for the record.
+            return BitmapFactory.decodeResource(context.getResources(), R.drawable.new_image);
         else if (resource == "sample_chili_back")
             return BitmapFactory.decodeResource(context.getResources(), R.drawable.sample_chili_back);
         else if (resource == "sample_tomato")

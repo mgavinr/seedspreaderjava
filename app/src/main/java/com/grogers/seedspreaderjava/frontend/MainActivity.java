@@ -8,15 +8,18 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
+import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import com.grogers.seedspreaderjava.R;
 import com.grogers.seedspreaderjava.backend.SeedSpreader;
 
+import java.io.LineNumberReader;
 import java.time.LocalDateTime;
 import java.util.Hashtable;
 import java.util.Map;
+import java.util.Random;
 
 
 /**
@@ -27,6 +30,11 @@ public class MainActivity extends AppCompatActivity {
      * Public member variables
      */
     public IBackend backend = null;
+    /**
+     * Private member variables
+     */
+    public static final String ARG_TRAY_NAME = "name";
+    public static final String ARG_TRAY_IMAGE_NAME = "image";
     /**
      * onCreate is called first
      * @param savedInstanceState If the activity is being re-initialized after
@@ -60,7 +68,7 @@ public class MainActivity extends AppCompatActivity {
         FragmentManager fm = getSupportFragmentManager();
         FragmentTransaction ft = fm.beginTransaction();
         Log.d(this.getClass().getSimpleName(), "*&* Adding " + backend.getTrays().size());
-        for (String trayName : backend.getTrays()) {
+        for (String trayName : backend.getTraysSort()) {
             Log.d(this.getClass().getSimpleName(), "*&* Adding a fragment " + trayName);
             Map<String, Object> tray = backend.Tray.getTray(trayName);
             String imageName = (String) tray.get("image");
@@ -78,7 +86,20 @@ public class MainActivity extends AppCompatActivity {
     }
     public void clickNewTray(View view) {
         Log.d(this.getClass().getSimpleName(), "*&* clickNewTray()");
-        this.startActivity(new Intent(this, EditTrayActivity.class));
+        String trayName = "New Tray " + LanguageProcessor.getDate();
+        String trayImageName = "new_image.jpg";
+        String description = "New Tray created on " + LanguageProcessor.getDate();
+        Random random = new Random();
+        while (backend.Tray.hasTray(trayName) == true) {
+            trayName = trayName + random.nextInt(10);
+        }
+        backend.Tray.addTray(trayName, trayImageName, description);
+        Intent intent = new Intent(this, EditTrayActivity.class);
+        Bundle args = new Bundle();
+        args.putString(ARG_TRAY_NAME, trayName);
+        args.putString(ARG_TRAY_IMAGE_NAME, trayImageName);
+        intent.putExtras(args);
+        this.startActivity(intent);
     }
     /*
     @Override

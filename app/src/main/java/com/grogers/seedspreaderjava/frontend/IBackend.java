@@ -12,6 +12,8 @@ import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.Map;
 
+// Major TODO you have to remove all these imageName trayName copies, they are not allowed,
+
 public class IBackend {
     public static IBackend instance = null;
     public String trayName = null;
@@ -41,6 +43,10 @@ public class IBackend {
 
     public java.util.Set<String> getTrays() {
         return seedSpreader.trays.keySet();
+    }
+    public java.util.Set<String> getTraysSort() {
+        java.util.Set<String> keySet = new java.util.TreeSet<>(seedSpreader.trays.keySet());
+        return keySet;
     }
 
     class Seed {
@@ -136,6 +142,37 @@ public class IBackend {
     }
 
     class Tray {
+
+        Map<String, Object> addTray(String trayName, String imageName, String description) {
+            if (seedSpreader.trays.containsKey(trayName)) {
+                tray = getTray(trayName);
+            } else {
+                tray = new HashMap<String, Object>();
+                tray.put("name", trayName);
+                tray.put("description", description);
+                tray.put("cols", 11);
+                tray.put("rows", 11);
+                tray.put("image", LanguageProcessor.getImageName(trayName, ""));
+                // TODO check this is unique otherwise they'll duplicate
+                // TODO check while on the filesystem, all the images look terrible, taken fromthe camera
+                Log.d(this.getClass().getSimpleName(), "*&* New tray will use image: " + tray.get("image"));
+                // Duplicate hard coded new_image.jpg to the new trays image
+                seedSpreader.images.put(tray.get("image").toString(), seedSpreader.images.get("new_image.jpg"));
+                seedSpreader.update("images");
+                seedSpreader.trays.put(trayName, tray);
+            }
+            if (tray.containsKey("year") == false) {
+                ArrayList<String> years = new ArrayList<>();
+                tray.put("year", years);
+            }
+            ArrayList<Integer> years = (ArrayList<Integer>) tray.get("year");
+            if (!years.contains(LanguageProcessor.getYear())) years.add(LanguageProcessor.getYear());
+            seedSpreader.update("not_images");
+            // get it?
+            tray = getTray(trayName);
+            return tray;
+        }
+
         public Bitmap saveTrayImage(Bitmap bitmap) {
             Bitmap scaledBitmap = Bitmap.createScaledBitmap(bitmap, 1000, 1500, false);
             seedSpreader.images.put(trayImageName, scaledBitmap);
@@ -144,13 +181,18 @@ public class IBackend {
         }
 
         public Bitmap getImage(String imageName) {
-            trayImageName = imageName;
-            trayImage = seedSpreader.images.get(imageName);
-            if (trayImage == null) {
-                Log.d(this.getClass().getSimpleName(), "*&* Not--found: " + imageName);
-                Log.d(this.getClass().getSimpleName(), "*&* Images are: " + seedSpreader.images.keySet().toString());
+            if (imageName != null) {
+                trayImageName = imageName;
+                trayImage = seedSpreader.images.get(imageName);
+                if (trayImage == null) {
+                    Log.d(this.getClass().getSimpleName(), "*&* Not--found: " + imageName);
+                    Log.d(this.getClass().getSimpleName(), "*&* Images are: " + seedSpreader.images.keySet().toString());
+                }
+                return trayImage;
+            } else {
+                Log.d(this.getClass().getSimpleName(), "*&* Looking for 'null' image so we are returning null");
+                return null;
             }
-            return trayImage;
         }
 
         void updateTrayName(String name) {
@@ -159,12 +201,16 @@ public class IBackend {
             tray = seedSpreader.trays.put(trayName, tray);
         }
 
+        boolean hasTray(String name) {
+            return seedSpreader.trays.containsKey(name);
+        }
+
         Map<String, Object> getTray(String name) {
             trayName = name;
             tray = seedSpreader.trays.get(name);
             if (tray == null) {
                 Log.d(this.getClass().getSimpleName(), "*&* Not--found: " + name);
-                Log.d(this.getClass().getSimpleName(), "*&* Images are: " + seedSpreader.trays.keySet().toString());
+                Log.d(this.getClass().getSimpleName(), "*&* Trays are: " + seedSpreader.trays.keySet().toString());
             }
             return tray;
         }

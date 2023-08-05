@@ -26,6 +26,7 @@ import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.grogers.seedspreaderjava.R;
 
@@ -505,11 +506,17 @@ public class EditTrayActivity extends AppCompatActivity
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_edit_tray);
-        onCreateArgs(savedInstanceState);
-        onCreateSetupHandlers(savedInstanceState);
-        onCreateSetupValues(savedInstanceState, true);
+        try {
+            super.onCreate(savedInstanceState);
+            setContentView(R.layout.activity_edit_tray);
+            onCreateArgs(savedInstanceState);
+            onCreateSetupHandlers(savedInstanceState);
+            onCreateSetupValues(savedInstanceState, true);
+        } catch (IllegalArgumentException e) {
+            finish();
+            Toast.makeText(this, "EditTrayAcitivity failed: " + e.getMessage()  + ".  See logcat", Toast.LENGTH_LONG).show();
+            return;
+        }
     }
     // mine
     protected void onCreateArgs(Bundle savedInstanceState) {
@@ -517,9 +524,10 @@ public class EditTrayActivity extends AppCompatActivity
         if (bundle != null) {
             String trayName = bundle.getString(ARG_TRAY_NAME);
             String trayImageName = bundle.getString(ARG_TRAY_IMAGE_NAME);
-            backend.Tray.getTray(trayName);
+            Log.d(this.getClass().getSimpleName(), "*&* Start EditTrayActivity for " + trayName + " and " + trayImageName);
+            if (backend.Tray.getTray(trayName) == null) throw new IllegalArgumentException("EditTrayActivity Tray " + trayName + "not found");
             backend.Tray.getImage(trayImageName);
-            Log.d(this.getClass().getSimpleName(), "*&* EditTrayActivity for " + trayName + " and " + trayImageName);
+            Log.d(this.getClass().getSimpleName(), "*&* End EditTrayActivity for " + trayName + " and " + trayImageName);
         } else {
             Log.d(this.getClass().getSimpleName(), "*&* we got no args EditTrayActivity");
         }
@@ -593,6 +601,8 @@ public class EditTrayActivity extends AppCompatActivity
                         TextView text = new TextView(this);
                         text.setText(key);
                         EditText editText = new EditText(this);
+                        // TODO save changes?, edit text integer, callbacks?
+                        editText.setText(backend.tray.get(key).toString());
                         main.addView(text);
                         main.addView(editText);
                     }

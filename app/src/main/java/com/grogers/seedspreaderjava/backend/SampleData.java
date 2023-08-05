@@ -21,7 +21,7 @@ public class SampleData {
     // maybe call flush before close
     static void createImages() {
         images = true;
-        for (String image : List.of("sample_chili", "sample_chili_back", "sample_tomato", "sample_tomato_back", "tray1", "tray2")) {
+        for (String image : List.of("new_image", "sample_chili", "sample_chili_back", "sample_tomato", "sample_tomato_back", "tray1", "tray2")) {
             try {
                 String filePath = frontend.imageFilesPublic + "/" + image + ".jpg";
                 FileOutputStream fos = new FileOutputStream(filePath);

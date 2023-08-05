@@ -24,7 +24,7 @@ class YamlReader {
     interface Callback {
         void onCallback(Map<String, Object> yamlData);
     }
-    void readYamlFile(String filePath, Callback cb) throws FileNotFoundException {
+    void readYamlFile(String filePath, Callback cb) throws IOException {
         Yaml yaml = new Yaml();
         FileInputStream fileInputStream = new FileInputStream(filePath);
         if (multiple) {
@@ -47,12 +47,13 @@ class YamlReader {
             Log.d(this.getClass().getSimpleName(), "*&*&*" + yaml.dump(yamlData));
             cb.onCallback(yamlData);
         }
+        fileInputStream.close();
     }
 
 }
 
 class YamlWriter {
-    public boolean append = true; // truncate is false, otherwise
+    public boolean append = false; // truncate is false, otherwise
     public void writeYamlFile(String filePath, Object data) {
         DumperOptions options = new DumperOptions();
         options.setDefaultFlowStyle(DumperOptions.FlowStyle.BLOCK); // Optional: Set the desired flow style
@@ -65,9 +66,11 @@ class YamlWriter {
         try (FileWriter writer = new FileWriter(filePath, append)) {
             Log.d(this.getClass().getSimpleName(), "*&*&* YAML file written successfully.");
             Log.d(this.getClass().getSimpleName(), "*&*&*" + yaml.dump(data));
+            writer.write(yaml.dump(data));
         } catch (IOException e) {
             Log.e(this.getClass().getSimpleName(), "*&*&* Error writing YAML file: " + e.getMessage());
         }
+        append = true; // first time truncate next time append
     }
 }
 
@@ -114,7 +117,7 @@ public class SeedSpreader {
     /**
      * Public Fields
      */
-    public boolean sampleData = true;
+    public boolean sampleData = true;   // TODO allow this to be in settings, like a reset, and it will also delete images
     public IFrontend frontend = IFrontend.getInstance();
     /* table is thread safe HashMap is modern not thread safe */
     public Hashtable<String, Map<String, Object> > trays = new Hashtable<String, Map<String, Object> >();
@@ -224,9 +227,11 @@ public class SeedSpreader {
             Log.d(this.getClass().getSimpleName(), "*&*&* readImages(" + filePath + ")");
             File[] files = filePath.listFiles();
             for (File file : files) {
-                FileInputStream fileInputStream = new FileInputStream(file);
+                FileInputStream fileInputStream = new FileInputStream(file); // not necessary
+                fileInputStream.close();
                 Log.d(this.getClass().getSimpleName(), "*&*&* readImages read " + file.getName());
                 Bitmap bitmap = BitmapFactory.decodeFile(file.getAbsolutePath());
+                if(bitmap == null) throw new Exception("BitmapFactory.decodeFile failed");
                 if(bitmap.getWidth() == 1000) {
                     images.put(file.getName(), bitmap);
                 } else {
