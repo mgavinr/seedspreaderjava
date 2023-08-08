@@ -76,7 +76,7 @@ public class LanguageProcessor {
         return imageName + suffix + ".jpg";
     }
 
-    static ArrayList<Integer> getRowCol(String rowcol, int maxRow, int maxCol) {
+    static public ArrayList<Integer> getRowCol(String rowcol, int maxRow, int maxCol) {
         // This tries to be a natural language interpreter for row col coords
         // it accepts rX as the row, and then cols follow, rX on it's own means nothing,
         // it's all about the cols, but you can say all, or * for all colls
@@ -86,29 +86,29 @@ public class LanguageProcessor {
         rowcol = rowcol.replace(" to", "to");
         rowcol = rowcol.replace("to ", "to");
         int currentRow = 1;
-        result.add(-currentRow);
-        boolean rowColValue = true;
+        boolean lastWasRow = false;
         for (String part : rowcol.split(" ")) {
             Log.d(LanguageProcessor.class.getSimpleName(), "*&* Language=[" + part + "] for row " + currentRow);
             try {
                 if (part.contains("r")) {
-                    if (rowColValue == false) {
-                        // row on it's own means all columns
+                    // check if we need to add stuff for last element, lastWasRow but no colls
+                    if (lastWasRow) {
+                        // we have to enter all colls for the previous last
                         for (int i = 0; i < maxCol; ++i) {
                             result.add(i);
                         }
-                    } else {
-                        // parse a row number
-                        Log.d(LanguageProcessor.class.getSimpleName(), "*&* parserow=>" + part);
-                        String row = part.replace("r", "");
-                        currentRow = Integer.parseInt(row);
-                        if (currentRow < 1) currentRow = 1;
-                        result.add(-currentRow);
-                        Log.d(LanguageProcessor.class.getSimpleName(), "*&* parserow<=" + part);
-                        rowColValue = false;
                     }
+                    lastWasRow = true;
+
+                    // parse this row number
+                    Log.d(LanguageProcessor.class.getSimpleName(), "*&* parserow=>" + part);
+                    String row = part.replace("r", "");
+                    currentRow = Integer.parseInt(row);
+                    if (currentRow < 1) currentRow = 1;
+                    result.add(-currentRow);
+                    Log.d(LanguageProcessor.class.getSimpleName(), "*&* parserow<=" + part);
                 } else {
-                    rowColValue = true;
+                    lastWasRow = false;
                     Log.d(LanguageProcessor.class.getSimpleName(), "*&* parsecol=>" + part);
                     if ((part.equals("*")) || (part.equals("all"))) {
                         for (int i = 0; i < maxCol; ++i) {
@@ -136,8 +136,7 @@ public class LanguageProcessor {
                 Log.d(LanguageProcessor.class.getSimpleName(), "*&* parse error " + e.toString());
             }
         }
-        if (rowColValue == false) {
-            // row on it's own means all columns
+        if (lastWasRow == true) {
             for (int i = 0; i < maxCol; ++i) {
                 result.add(i);
             }
@@ -146,7 +145,7 @@ public class LanguageProcessor {
         return result;
     }
 
-    static String getContents(IBackend backend) {
+    static public String getContents(IBackend backend) {
         String multiLineE= "";
         boolean start = true;
 
@@ -177,7 +176,7 @@ public class LanguageProcessor {
 
     // TODO we want to compress this, and put more human language in it
     // suggestions, statistics, temperatures
-    static HashMap<String, String> getContentsPerSeed(IBackend backend) {
+    static public HashMap<String, String> getContentsPerSeed(IBackend backend) {
         // Create: Seed list
         HashMap<String, String> seedList = new HashMap<>();
         List<String> keys = new ArrayList<String>(backend.tray.keySet());

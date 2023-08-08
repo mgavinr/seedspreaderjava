@@ -99,25 +99,17 @@ public class SeedSpreader {
         readImages();
     }
 
-    public void update(String what) {
-        if (what == null) {
-            writeDataForSettings();
-            writeDataForSeeds();
-            writeDataForTrays();
-            writeImages();
-        } else if (what == "images") {
-            writeImages();
-        } else if (what == "not_images") {
-            writeDataForSettings();
-            writeDataForSeeds();
-            writeDataForTrays();
-        }
+    public void update() {
+        writeDataForSettings();
+        writeDataForSeeds();
+        writeDataForTrays();
+        writeImages();
     }
 
     /**
      * Public Fields
      */
-    public boolean sampleData = true;   // TODO allow this to be in settings, like a reset, and it will also delete images
+    public boolean sampleData = false;   // TODO allow this to be in settings, like a reset, and it will also delete images
     public IFrontend frontend = IFrontend.getInstance();
     /* table is thread safe HashMap is modern not thread safe */
     public Hashtable<String, Map<String, Object> > trays = new Hashtable<String, Map<String, Object> >();

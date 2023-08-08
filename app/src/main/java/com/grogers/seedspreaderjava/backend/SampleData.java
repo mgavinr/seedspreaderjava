@@ -17,6 +17,10 @@ public class SampleData {
     static public boolean trays = false;
     static public boolean images = false;
     static public boolean settings = false;
+    static public int settings_api = 1;
+    static public int images_api = 1;
+    static public int trays_api = 1;
+    static public int seeds_api = 1;
 
     // maybe call flush before close
     static void createImages() {
@@ -39,6 +43,7 @@ public class SampleData {
     static void createSeeds() {
         seeds = true;
         String sample = "---\n" +
+                "api: " + seeds_api + "\n" +
                 "name: Sample Chili Pepper\n" +
                 "image_front: sample_chili.jpg\n" +
                 "image_back: sample_chili_back.jpg\n" +
@@ -46,6 +51,7 @@ public class SampleData {
                 "year:\n" +
                 "- " + LanguageProcessor.getYear() + "\n" +
                 "---\n" +
+                "api: " + seeds_api + "\n" +
                 "name: Sample tomato\n" +
                 "image_front: sample_tomato.jpg\n" +
                 "image_back: sample_tomato_back.jpg\n" +
@@ -66,6 +72,7 @@ public class SampleData {
     static void createSettings() {
         settings = true;
         String sample = "---\n" +
+                "api: " + settings_api + "\n" +
                 "name: default\n" +
                 "year: " + LanguageProcessor.getYear() + "\n";
         try {
@@ -81,6 +88,7 @@ public class SampleData {
     static void createTrays() {
         trays = true;
         String sampleTrays = "---\n" +
+                "api: " + trays_api + "\n" +
                 "name: Veg Tray\n" +
                 "description: A tray holding veg\n" +
                 "image: tray1.jpg\n" +
@@ -104,6 +112,7 @@ public class SampleData {
                 "  date: '" + LanguageProcessor.getDate(2) + "'\n" +
                 "  event: planted\n" +
                 "---\n" +
+                "api: " + trays_api + "\n" +
                 "name: Fruit Tray\n" +
                 "description: A tray holding fruits\n" +
                 "image: tray2.jpg\n" +

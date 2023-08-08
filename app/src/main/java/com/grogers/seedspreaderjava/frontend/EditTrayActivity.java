@@ -486,12 +486,6 @@ public class EditTrayActivity extends AppCompatActivity
         implements View.OnLongClickListener, View.OnClickListener, ActivityResultCallback<ActivityResult>
 {
     /**
-     * Members : for passed in bundle
-     */
-    public static String ARG_TRAY_NAME = TrayFragment.ARG_TRAY_NAME;
-    public static String ARG_TRAY_IMAGE_NAME = TrayFragment.ARG_TRAY_IMAGE_NAME;
-
-    /**
      * Members : members
      */
     public IBackend backend = IBackend.getInstance();
@@ -522,12 +516,10 @@ public class EditTrayActivity extends AppCompatActivity
     protected void onCreateArgs(Bundle savedInstanceState) {
         Bundle bundle = getIntent().getExtras();
         if (bundle != null) {
-            String trayName = bundle.getString(ARG_TRAY_NAME);
-            String trayImageName = bundle.getString(ARG_TRAY_IMAGE_NAME);
-            Log.d(this.getClass().getSimpleName(), "*&* Start EditTrayActivity for " + trayName + " and " + trayImageName);
+            String trayName = bundle.getString("name");
+            Log.d(this.getClass().getSimpleName(), "*&* Start EditTrayActivity for " + trayName);
             if (backend.Tray.getTray(trayName) == null) throw new IllegalArgumentException("EditTrayActivity Tray " + trayName + "not found");
-            backend.Tray.getImage(trayImageName);
-            Log.d(this.getClass().getSimpleName(), "*&* End EditTrayActivity for " + trayName + " and " + trayImageName);
+            Log.d(this.getClass().getSimpleName(), "*&* End EditTrayActivity for " + trayName);
         } else {
             Log.d(this.getClass().getSimpleName(), "*&* we got no args EditTrayActivity");
         }
@@ -541,7 +533,7 @@ public class EditTrayActivity extends AppCompatActivity
         launcher = registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), this);
         trayImageView = findViewById(R.id.aetTrayImage);
         trayImageView.setOnLongClickListener(this); // onLongClick .. we only have one
-        trayImageView.setImageBitmap(backend.trayImage);
+        trayImageView.setImageBitmap(backend.Tray.getImage());
         trayImageView.setOnClickListener(this); // onClick()
 
         // onEditTextFocusChange - multiple
@@ -562,7 +554,7 @@ public class EditTrayActivity extends AppCompatActivity
 
         // Change tray name
         EditText trayName = findViewById(R.id.aetTrayName);
-        trayName.setText(backend.trayName);
+        trayName.setText(backend.tray.get("name").toString());
 
         // Change tray contents
         EditText contents = findViewById(R.id.aetContentsEditTextML);
@@ -671,7 +663,7 @@ public class EditTrayActivity extends AppCompatActivity
 
     @Override
     public void onBackPressed() {
-        backend.seedSpreader.update(null);
+        // TODO back does not save anymore, backend.seedSpreader.update();
         super.onBackPressed();
     }
 
@@ -679,7 +671,7 @@ public class EditTrayActivity extends AppCompatActivity
     public void onClick(View v) {
         // TODO add a red box, to mean modified not saved, green to mean saved
         // TODO add a back arrow to the left, that is the background property of image view
-        backend.seedSpreader.update(null);
+        backend.seedSpreader.update();
         finish();
     }
 }

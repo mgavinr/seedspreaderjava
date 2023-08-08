@@ -25,17 +25,7 @@ import com.grogers.seedspreaderjava.backend.IFrontend;
  */
 public class TrayFragment extends Fragment {
 
-    // TODO: Rename parameter arguments, choose names that match
-    // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
-    public static final String ARG_TRAY_NAME = "name";
-    public static final String ARG_TRAY_IMAGE_NAME = "image";
-
-    // TODO: Rename and change types of parameters
-    private String trayName;
-    private String trayImageName;
-
     public IBackend backend = IBackend.getInstance();
-
     public TrayFragment() {
         // Required empty public constructor
     }
@@ -45,15 +35,13 @@ public class TrayFragment extends Fragment {
      * this fragment using the provided parameters.
      *
      * @param trayName  - the name of the tray
-     * @param trayImageName - the image name of the tray
      * @return A new instance of fragment TrayFragment.
      */
     // TODO: Rename and change types and number of parameters
-    public static TrayFragment newInstance(String trayName, String trayImageName) {
+    public static TrayFragment newInstance(String trayName) {
         TrayFragment fragment = new TrayFragment();
         Bundle args = new Bundle();
-        args.putString(ARG_TRAY_NAME, trayName);
-        args.putString(ARG_TRAY_IMAGE_NAME, trayImageName);
+        args.putString("name", trayName);
         fragment.setArguments(args);
         return fragment;
     }
@@ -66,9 +54,16 @@ public class TrayFragment extends Fragment {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        if (getArguments() != null) {
-            trayName = getArguments().getString(ARG_TRAY_NAME);
-            trayImageName = getArguments().getString(ARG_TRAY_IMAGE_NAME);
+        onCreateArgs(savedInstanceState);
+    }
+
+    protected void onCreateArgs(Bundle savedInstanceState) {
+        Bundle bundle =getArguments();
+        if (bundle != null) {
+            String trayName = bundle.getString("name");
+            if (backend.Tray.getTray(trayName) == null) throw new IllegalArgumentException("TrayFragment Tray " + trayName + "not found");
+        } else {
+            Log.d(this.getClass().getSimpleName(), "*&* we got no args TrayFragment");
         }
     }
 
@@ -106,14 +101,14 @@ public class TrayFragment extends Fragment {
         btTrayName.setOnClickListener(this::ftTrayNameEventClick);
         //
         Button name = (Button) view.findViewById(R.id.ftTrayNameButton);
-        name.setText(this.trayName);
+        name.setText(backend.Tray.getTrayName());
         //
-        Bitmap bitmap = backend.Tray.getImage(this.trayImageName);
+        Bitmap bitmap = backend.Tray.getImage();
         if (bitmap != null) {
             ImageView image = (ImageView) view.findViewById(R.id.ftPicture);
             image.setImageBitmap(bitmap);
         } else {
-            Log.d(this.getClass().getSimpleName(), "*&* fragment has no image: " + this.trayImageName);
+            Log.d(this.getClass().getSimpleName(), "*&* fragment has no image: ");
         }
     }
 

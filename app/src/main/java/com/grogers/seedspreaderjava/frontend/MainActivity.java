@@ -70,10 +70,8 @@ public class MainActivity extends AppCompatActivity {
         Log.d(this.getClass().getSimpleName(), "*&* Adding " + backend.getTrays().size());
         for (String trayName : backend.getTraysSort()) {
             Log.d(this.getClass().getSimpleName(), "*&* Adding a fragment " + trayName);
-            Map<String, Object> tray = backend.Tray.getTray(trayName);
-            String imageName = (String) tray.get("image");
-            Log.d(this.getClass().getSimpleName(), "*&* Adding a fragment " + trayName + " image " + imageName);
-            TrayFragment trayFragment = TrayFragment.newInstance(trayName, imageName);
+            // TODO should check that getTraysSort() is the same as the .get("name") parameter
+            TrayFragment trayFragment = TrayFragment.newInstance(trayName);
             ft.add(R.id.linearLayoutFrag, trayFragment, trayName);
         }
         ft.commit();
