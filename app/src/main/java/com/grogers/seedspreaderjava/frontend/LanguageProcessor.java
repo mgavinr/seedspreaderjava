@@ -5,9 +5,9 @@ import android.util.Log;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.TreeMap;
 
 public class LanguageProcessor {
     static Map<String, String> iconList = Map.ofEntries(
@@ -176,9 +176,9 @@ public class LanguageProcessor {
 
     // TODO we want to compress this, and put more human language in it
     // suggestions, statistics, temperatures
-    static public HashMap<String, String> getContentsPerSeed(IBackend backend) {
+    static public TreeMap<String, String> getContentsPerSeed(IBackend backend) {
         // Create: Seed list
-        HashMap<String, String> seedList = new HashMap<>();
+        TreeMap<String, String> seedList = new TreeMap<>();
         List<String> keys = new ArrayList<String>(backend.tray.keySet());
         Collections.sort(keys);
         int row = 0;

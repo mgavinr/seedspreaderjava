@@ -9,7 +9,9 @@ import java.io.BufferedWriter;
 import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 public class SampleData {
     static public IFrontend frontend = IFrontend.getInstance();
@@ -83,6 +85,49 @@ public class SampleData {
         } catch (IOException e) {
             Log.e(SampleData.class.getSimpleName(), "*&*&* Could not write sample data: " + e);
         }
+    }
+
+    /**
+     * This auto removes some errors from old format yaml files
+     * @param ss
+     */
+    static boolean fixTraysApi_0(SeedSpreader ss) {
+        boolean rv = false;
+        for (String trayName : ss.trays.keySet()) {
+            Map<String, Object> tray = ss.trays.get(trayName);
+            for (String key : tray.keySet()) {
+                if (key.contains("content_")) {
+                    ArrayList<?> rowContent = (ArrayList<?>) tray.get(key);
+                    if (rowContent != null) {
+                        for (Object colObject : rowContent) {
+                            Map<String, Object> col = (Map<String, Object>) colObject;
+                            if (col != null) {
+                                List<String> keysToRemove = new ArrayList<>();
+                                for (String colkey : col.keySet()) {
+                                    if (col.get(colkey) == null) {
+                                        Log.d("SampleData.java", "*&*&* COL Fix remove key with value: " + colkey + "=" + col.get(colkey));
+                                        keysToRemove.add(colkey);
+                                    }
+                                }
+                                for(String keyrm: keysToRemove) {
+                                    col.remove(keyrm);
+                                    rv = true;
+                                }
+                            }
+                        }
+                    }
+                }
+                if (tray.get(key) == null) {
+                    Log.d("SampleData.java", "*&*&* Fix remove key with value: " + key + "="+ tray.get(key));
+                    //tray.remove(key);
+                }
+                if (tray.get(key) != null && tray.get(key).equals("")) {
+                    Log.d("SampleData.java", "*&*&* Fix remove key with value: " + key + "="+ tray.get(key));
+                    //tray.remove(key);
+                }
+            }
+        }
+        return rv;
     }
 
     static void createTrays() {

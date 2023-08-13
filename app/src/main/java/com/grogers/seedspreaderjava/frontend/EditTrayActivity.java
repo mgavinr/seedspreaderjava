@@ -34,28 +34,30 @@ import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.TreeMap;
 
 
 /**
- * TextListener
+ * myTextListener
  * - listens for changes to focus for alot of fields (we new this for each)
  * - also listen to each text change in a field, but we don't use that, i forget it
+ * For some reason it is only called when we click between edits only
+ * not edit text and image view, I could write a test program to check that ..
  */
-class TextListener implements TextWatcher, View.OnFocusChangeListener {
+class myTextListener implements TextWatcher, View.OnFocusChangeListener {
     EditText view = null;
     String key = null;
     public IBackend backend = IBackend.getInstance();
-    public TextListener(String k, View v) {
+    public myTextListener(String k, View v) {
         this.key = k;
         this.view = (EditText) v;
     }
-    public TextListener(String k) {
+    public myTextListener(String k) {
         this.key = k;
     }
-    public TextListener(View v) {
+    public myTextListener(View v) {
         this.view = (EditText) v;
     }
 
@@ -70,8 +72,8 @@ class TextListener implements TextWatcher, View.OnFocusChangeListener {
                 Log.d(this.getClass().getSimpleName(), "*&* listener save():" + e.toString());
             }
         } else {
-            backend.tray.put(key, value);   // row colls descritpion etc.
-            if (key == "name") backend.Tray.updateTrayName(value);
+            if (key.equals("name")) backend.Tray.updateTrayName(value);
+            backend.tray.put(key, value);   // name row colls descritpion etc.
         }
     }
 
@@ -539,13 +541,14 @@ public class EditTrayActivity extends AppCompatActivity
         // onEditTextFocusChange - multiple
         // allow the user to change the contents of all fields
         EditText editText = findViewById(R.id.aetTrayName);
-        //trayName.addTextChangedListener(new TextListener("name", trayName));
-        editText.setOnFocusChangeListener(new TextListener("name", editText));
+        //trayName.addTextChangedListener(new myTextListener("name", trayName));
+        editText.setOnFocusChangeListener(new myTextListener("name", editText));
         editText = findViewById(R.id.aetColsEdit); //width
-        editText.setOnFocusChangeListener(new TextListener("cols", editText));
+        editText.setOnFocusChangeListener(new myTextListener("cols", editText));
         editText = findViewById(R.id.aetRowsEdit); //width
-        editText.setOnFocusChangeListener(new TextListener("rows", editText));
+        editText.setOnFocusChangeListener(new myTextListener("rows", editText));
         // TODO add the other user custom fields with now Ids
+        // TODO unf Focus change only fires if you click a different field?
     }
     protected void onCreateSetupValues(Bundle savedInstanceState, Boolean create) {
         List<String> doneList = Arrays.asList("name", "image", "cols", "rows");
@@ -570,7 +573,7 @@ public class EditTrayActivity extends AppCompatActivity
         trayRows.setText(rows.toString());
 
         // Create: Seed list
-        HashMap<String, String> seedList = LanguageProcessor.getContentsPerSeed(backend);
+        TreeMap<String, String> seedList = LanguageProcessor.getContentsPerSeed(backend);
         mainc.removeAllViews();
         for(String key: seedList.keySet()) {
             TextView text = new TextView(this);
@@ -627,7 +630,7 @@ public class EditTrayActivity extends AppCompatActivity
             Log.d(this.getClass().getSimpleName(), "*&* fuo:"+ data.hashCode());
             Bundle extras = data.getExtras();
             Bitmap imageBitmap = (Bitmap) extras.get("data");
-            if (intentName == "tray") {
+            if (intentName.equals("tray")) {
                 Log.d(this.getClass().getSimpleName(), "*&* Yay! image for tray " + intentName);
                 trayImageView.setImageBitmap(backend.Tray.saveTrayImage(imageBitmap));
             } else {
@@ -667,11 +670,26 @@ public class EditTrayActivity extends AppCompatActivity
         super.onBackPressed();
     }
 
-    @Override
-    public void onClick(View v) {
+    public void onLeaveEditTrayActivity(View v) {
         // TODO add a red box, to mean modified not saved, green to mean saved
         // TODO add a back arrow to the left, that is the background property of image view
+
+        // when we leave we have to change the focus, to save the texts
+        // it is a major issue that clicking an image is not changing the focus
+        // we have to request focus twice just in case these have the focus already
+        findViewById(R.id.aetRowsEdit).requestFocus();
+        findViewById(R.id.aetColsEdit).requestFocus();
+        // when we leave we save all data
         backend.seedSpreader.update();
         finish();
+    }
+
+    @Override
+    public void onClick(View v) {
+        EditText trayName = findViewById(R.id.aetTrayName);
+        if (!trayName.hasFocus()) {
+            trayName.requestFocus();
+        }
+        onLeaveEditTrayActivity(v);
     }
 }

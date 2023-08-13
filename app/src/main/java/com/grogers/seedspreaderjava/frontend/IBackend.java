@@ -8,8 +8,7 @@ import android.widget.EditText;
 import com.grogers.seedspreaderjava.backend.SeedSpreader;
 
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Hashtable;
+import java.util.TreeMap;
 import java.util.Map;
 
 // Major TODO you have to remove all these imageName trayName copies, they are not allowed,
@@ -33,13 +32,6 @@ public class IBackend {
 
     SeedSpreader seedSpreader = SeedSpreader.getInstance();
 
-    public java.util.Set<String> getTrays() {
-        return seedSpreader.trays.keySet();
-    }
-    public java.util.Set<String> getTraysSort() {
-        java.util.Set<String> keySet = new java.util.TreeSet<>(seedSpreader.trays.keySet());
-        return keySet;
-    }
 
     class Seed {
         public void saveSeedImage(String imageName, Bitmap bitmap) {
@@ -86,7 +78,7 @@ public class IBackend {
             if (seedSpreader.seeds.containsKey(seedName)) {
                 seed = getSeed(seedName);
             } else {
-                seed = new HashMap<String, Object>();
+                seed = new TreeMap<String, Object>();
                 seed.put("name", seedName);
                 seed.put("description", description);
                 seedSpreader.seeds.put(seedName, seed);
@@ -132,11 +124,23 @@ public class IBackend {
 
     class Tray {
 
-        Map<String, Object> addTray(String trayName, String imageName, String description) {
+        public java.util.Set<String> getTrays() {
+            return seedSpreader.trays.keySet();
+        }
+
+        public java.util.Set<String> getTraysSort() {
+            return seedSpreader.trays.keySet();
+        }
+
+        void remTray(String trayName) {
+            seedSpreader.trays.remove(trayName);
+        }
+
+        Map<String, Object> addTray(String trayName, String description) {
             if (seedSpreader.trays.containsKey(trayName)) {
                 tray = getTray(trayName);
             } else {
-                tray = new HashMap<String, Object>();
+                tray = new TreeMap<String, Object>();
                 tray.put("name", trayName);
                 tray.put("description", description);
                 tray.put("cols", 11);
@@ -187,8 +191,15 @@ public class IBackend {
         }
 
         void updateTrayName(String trayNameNew) {
-            seedSpreader.trays.remove(tray.get("name"));
-            tray = seedSpreader.trays.put(trayNameNew, tray);
+            Object removed = seedSpreader.trays.remove(tray.get("name"));
+            if (removed == null) Log.e(this.getClass().getSimpleName(), "*&* TrayRemove failed");
+            if (trayNameNew.equals("delete")) {
+                Log.i(this.getClass().getSimpleName(), "*&* TrayRemove and not re-added (delete)");
+            } else {
+                Log.d(this.getClass().getSimpleName(), "*&* TrayRemove and re-added |" + trayNameNew + "|");
+                seedSpreader.trays.put(trayNameNew, tray);
+            }
+            tray.put("name", trayNameNew);
         }
 
         boolean hasTray(String name) {
@@ -200,6 +211,8 @@ public class IBackend {
             if (tray == null) {
                 Log.d(this.getClass().getSimpleName(), "*&* Not--found: " + trayName);
                 Log.d(this.getClass().getSimpleName(), "*&* Trays are: " + seedSpreader.trays.keySet().toString());
+            } else {
+                Log.d(this.getClass().getSimpleName(), "*&* Tray is " + tray.toString());
             }
             return tray;
         }
@@ -207,35 +220,39 @@ public class IBackend {
         void updateEvent(String rowcols, String date, String seedName, String eventName) {
             if (eventName == null) Log.e(this.getClass().getSimpleName(), "*&* updateEvent for null error");
             ArrayList<Integer> userRowCol = LanguageProcessor.getRowCol(rowcols, (Integer) tray.get("rows"), (Integer) tray.get("cols"));
-            ArrayList<HashMap<String, Object>> rowContent = null;
+            ArrayList<TreeMap<String, Object>> rowContent = null;
             Map<String, Object> colContent = null;
+            String rowName = null;
             for(Integer rowOrColValue : userRowCol) {
                 // negative values are rows
                 if (rowOrColValue < 0) {
                     int origRowOrColValue = -rowOrColValue;
                     rowOrColValue = -rowOrColValue;
-                    rowContent = (ArrayList< HashMap<String, Object> >) tray.get("content_"+rowOrColValue.toString());
+                    rowName = String.format("content_%05d", rowOrColValue);
+                    rowContent = (ArrayList< TreeMap<String, Object> >) tray.get(rowName);
                     while((rowContent == null) && (rowOrColValue > 0)) {
-                        Log.d(this.getClass().getSimpleName(), "*&* Seed() OK: adding new row to yaml: content_"+ rowOrColValue);
-                        rowContent = new ArrayList< HashMap<String, Object> >();
-                        tray.put("content_"+rowOrColValue, rowContent);
+                        Log.d(this.getClass().getSimpleName(), "*&* Seed() OK: adding new row to yaml: " + rowName);
+                        rowContent = new ArrayList< TreeMap<String, Object> >();
+                        tray.put(rowName, rowContent);
                         rowOrColValue--;
-                        rowContent = (ArrayList< HashMap<String, Object> >) tray.get("content_"+rowOrColValue.toString());
+                        rowName = String.format("content_%05d", rowOrColValue);
+                        rowContent = (ArrayList< TreeMap<String, Object> >) tray.get(rowName);
                     }
                     rowOrColValue = origRowOrColValue;
-                    rowContent = (ArrayList< HashMap<String, Object> >) tray.get("content_"+rowOrColValue.toString());
+                    rowName = String.format("content_%05d", rowOrColValue);
+                    rowContent = (ArrayList< TreeMap<String, Object> >) tray.get(rowName);
                 }
                 // positive values are cols
                 else {
-                    // rowContent is an array of HashMaps each HashMap is a column
+                    // rowContent is an array of TreeMap/HashMaps each TreeMap/HashMap is a column
                     while(rowContent.size() <= rowOrColValue) {
                         // size 2, means index 0, 1  .. so we use <=
                         Log.d(this.getClass().getSimpleName(), "*&* adding column to row for  " + rowOrColValue);
-                        rowContent.add(new HashMap<String, Object>());
+                        rowContent.add(new TreeMap<String, Object>());
                     }
-                    // colContent is a HashMap single, with many entries bumped on per event
+                    // colContent is a TreeMap/HashMap single, with many entries bumped on per event
                     colContent = rowContent.get(rowOrColValue);
-                    if(colContent == null) colContent = new HashMap<String, Object>();
+                    if(colContent == null) colContent = new TreeMap<String, Object>();
 
                     // bump the last event, TODO it assumes comma is not in any other field
                     if (colContent.get("name") != null) {

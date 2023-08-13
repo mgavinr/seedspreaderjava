@@ -2,6 +2,7 @@ package com.grogers.seedspreaderjava.backend;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.util.Log;
+import android.widget.Toast;
 
 import com.grogers.seedspreaderjava.frontend.LanguageProcessor;
 
@@ -15,9 +16,10 @@ import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.Hashtable;
+import java.util.TreeMap;
 
 class YamlReader {
     boolean multiple = true;
@@ -37,7 +39,7 @@ class YamlReader {
                     Map<String, Object> yamlData = (Map<String, Object>) document;
                     cb.onCallback(yamlData);
                 } else {
-                    Log.e(this.getClass().getSimpleName(), "*&*&* we don't know what this yaml is");
+                    Log.e(this.getClass().getSimpleName(), "*&*&* we don't know what this yaml is: " + document.getClass());
                 }
             }
         } else {
@@ -68,6 +70,8 @@ class YamlWriter {
             Log.d(this.getClass().getSimpleName(), "*&*&*" + yaml.dump(data));
             writer.write(yaml.dump(data));
         } catch (IOException e) {
+            Log.e(this.getClass().getSimpleName(), "*&*&* IOError writing YAML file: " + e.getMessage());
+        } catch (Exception e) {
             Log.e(this.getClass().getSimpleName(), "*&*&* Error writing YAML file: " + e.getMessage());
         }
         append = true; // first time truncate next time append
@@ -93,10 +97,15 @@ public class SeedSpreader {
     public void start() {
         readDataForSettings();
         settingsYear = (Integer) settings.get("year");
+        if ((settings == null) || (settingsYear == null)) {
+            Toast.makeText(IFrontend.getInstance().context, "SeedSpreader fatal error no settings file.  See logcat", Toast.LENGTH_LONG).show();
+            return;
+        }
         Log.d(this.getClass().getSimpleName(), "*&*&* Settings for year:" + settingsYear.toString());
         readDataForSeeds();
         readDataForTrays();
         readImages();
+        if (SampleData.fixTraysApi_0(this)) writeDataForTrays();
     }
 
     public void update() {
@@ -112,10 +121,10 @@ public class SeedSpreader {
     public boolean sampleData = false;   // TODO allow this to be in settings, like a reset, and it will also delete images
     public IFrontend frontend = IFrontend.getInstance();
     /* table is thread safe HashMap is modern not thread safe */
-    public Hashtable<String, Map<String, Object> > trays = new Hashtable<String, Map<String, Object> >();
-    public Hashtable<String, Map<String, Object> > seeds = new Hashtable<String, Map<String, Object> >();
-    public Map<String, Object> settings = new Hashtable<String, Object>();
-    public Hashtable<String, Bitmap> images = new Hashtable<String, Bitmap>();
+    public TreeMap<String, Map<String, Object> > trays = new TreeMap<String, Map<String, Object> >();
+    public TreeMap<String, Map<String, Object> > seeds = new TreeMap<String, Map<String, Object> >();
+    public TreeMap<String, Object> settings = new TreeMap<String, Object>();
+    public TreeMap<String, Bitmap> images = new TreeMap<String, Bitmap>();
     public boolean scale = true;
     public Integer settingsYear = (Integer) LanguageProcessor.getYear();
 
@@ -162,7 +171,7 @@ public class SeedSpreader {
             reader.readYamlFile(filePath, new YamlReader.Callback() {
                 @Override
                 public void onCallback(Map<String, Object> yamlData) {
-                    settings = yamlData;
+                    settings = new TreeMap<>(yamlData);
                 }
             });
             Log.d(this.getClass().getSimpleName(), "*&*&* readDataForSettings done, read " + settings.size() + " settings from AndroidFS");
@@ -228,7 +237,7 @@ public class SeedSpreader {
                     images.put(file.getName(), bitmap);
                 } else {
                     Log.d(this.getClass().getSimpleName(), "*&*&* readImages Scaling image from " + bitmap.getWidth());
-                    Bitmap scaledBitmap = Bitmap.createScaledBitmap(bitmap, 1000,1500, false);
+                    Bitmap scaledBitmap = Bitmap.createScaledBitmap(bitmap, 1000,1500, true);
                     images.put(file.getName(), scaledBitmap);
                 }
             }
@@ -312,6 +321,8 @@ public class SeedSpreader {
     void writeDataForTrays() {
         YamlWriter writer = new YamlWriter();
         String filePath = frontend.filesPublic + "/" + settingsYear + "trays.yaml";
+        File fileToDelete = new File(filePath);
+        fileToDelete.delete();
         for( String name : trays.keySet()) {
             Log.d(this.getClass().getSimpleName(), "*&*&* writeDataForTrays(" + name + ", " + filePath + ")");
             Map<String, Object> o = trays.get(name);
